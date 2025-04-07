@@ -1,9 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <title>Scrum Poker</title>
   <link rel="stylesheet" href="/styles/output.css">
 </head>
-<body>
-  <h1 class="text-3xl font-bold underline">Hello Tailwind</h1>
+<body class="bg-gray-100 text-gray-800 p-6">
+  <div class="max-w-xl mx-auto bg-white shadow rounded p-6 space-y-4">
+    <h1 class="text-2xl font-bold">Scrum Poker</h1>
+    <input id="name" type="text" placeholder="Your name" class="border p-2 w-full rounded">
+    <input id="sessionId" type="text" placeholder="Session ID" class="border p-2 w-full rounded">
+    <button id="join" class="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">Join</button>
+
+    <div id="vote-panel" class="hidden space-y-4">
+      <div class="flex gap-2 justify-center">
+        <button class="vote-btn bg-gray-200 p-2 rounded" data-value="1">1</button>
+        <button class="vote-btn bg-gray-200 p-2 rounded" data-value="2">2</button>
+        <button class="vote-btn bg-gray-200 p-2 rounded" data-value="3">3</button>
+        <button class="vote-btn bg-gray-200 p-2 rounded" data-value="5">5</button>
+        <button class="vote-btn bg-gray-200 p-2 rounded" data-value="8">8</button>
+        <button class="vote-btn bg-gray-200 p-2 rounded" data-value="13">13</button>
+      </div>
+      <div class="flex gap-2 justify-center">
+        <button id="reveal" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Reveal</button>
+        <button id="clear" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Clear</button>
+      </div>
+      <div id="users" class="pt-4"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const joinBtn = document.getElementById('join');
+    const nameInput = document.getElementById('name');
+    const sessionIdInput = document.getElementById('sessionId');
+    const votePanel = document.getElementById('vote-panel');
+    const usersDiv = document.getElementById('users');
+
+    let sessionId;
+
+    joinBtn.addEventListener('click', () => {
+      const name = nameInput.value;
+      sessionId = sessionIdInput.value;
+      if (name && sessionId) {
+        socket.emit('join', { sessionId, name });
+        votePanel.classList.remove('hidden');
+      }
+    });
+
+    document.querySelectorAll('.vote-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        socket.emit('vote', btn.dataset.value);
+      });
+    });
+
+    document.getElementById('reveal').addEventListener('click', () => {
+      socket.emit('reveal');
+    });
+
+    document.getElementById('clear').addEventListener('click', () => {
+      socket.emit('clear');
+    });
+
+    socket.on('state', ({ users, votesRevealed }) => {
+      usersDiv.innerHTML = '';
+      for (const id in users) {
+        const { name, vote } = users[id];
+        const displayVote = votesRevealed ? vote : (vote ? '✓' : '');
+        usersDiv.innerHTML += `<div class="p-2 border-b">${name}: <strong>${displayVote}</strong></div>`;
+      }
+    });
+  </script>
 </body>
 </html>
