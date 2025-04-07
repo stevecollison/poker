@@ -1,13 +1,12 @@
-/*! tailwindcss v4.1.3 | MIT License | https://tailwindcss.com */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* Example extended utility classes */
+/*! tailwindcss v4.1.3 | MIT License | https://tailwindcss.com */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
 .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
-.bg-indigo-500 { background-color: #6366f1; }
-.hover\:bg-indigo-700:hover { background-color: #4338ca; }
-.rounded-lg { border-radius: 0.5rem; }
-.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
-.transition-all { transition: all 0.3s ease-in-out; }
-/* ... more generated classes ... */
+.font-bold { font-weight: 700; }
+.underline { text-decoration: underline; }
+.bg-blue-500 { background-color: #3b82f6; }
+.text-white { color: #fff; }
+.p-4 { padding: 1rem; }
