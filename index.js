@@ -1,4 +1,3 @@
-// Simple Scrum Poker Server (Node.js + Express + Socket.IO)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -8,12 +7,10 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: '*'
-  }
+  cors: { origin: '*' }
 });
 
-const sessions = {}; // In-memory session storage
+const sessions = {};
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -33,70 +30,65 @@ io.on('connection', (socket) => {
       socket.emit('error', 'Session does not exist.');
       return;
     }
-
     const session = sessions[sessionId];
     const isAdmin = Object.keys(session.users).length === 0;
     session.users[socket.id] = { name, vote: null, isAdmin };
     socket.join(sessionId);
     socket.sessionId = sessionId;
-
     io.to(sessionId).emit('state', {
       users: session.users,
       votesRevealed: session.votesRevealed
     });
   });
 
-  socket.on('vote', (voteValue) => {
-    const sessionId = socket.sessionId;
-    if (!sessionId || !sessions[sessionId]) return;
-    sessions[sessionId].users[socket.id].vote = voteValue;
-
-    io.to(sessionId).emit('state', {
-      users: sessions[sessionId].users,
-      votesRevealed: sessions[sessionId].votesRevealed
-    });
+  socket.on('vote', (value) => {
+    const session = sessions[socket.sessionId];
+    if (session && session.users[socket.id]) {
+      session.users[socket.id].vote = value;
+      io.to(socket.sessionId).emit('state', {
+        users: session.users,
+        votesRevealed: session.votesRevealed
+      });
+    }
   });
 
   socket.on('reveal', () => {
-    const sessionId = socket.sessionId;
-    const user = sessions[sessionId]?.users[socket.id];
-    if (!user?.isAdmin) return;
-
-    sessions[sessionId].votesRevealed = true;
-    io.to(sessionId).emit('state', {
-      users: sessions[sessionId].users,
-      votesRevealed: true
-    });
+    const session = sessions[socket.sessionId];
+    if (!session) return;
+    if (session.users[socket.id]?.isAdmin) {
+      session.votesRevealed = true;
+      io.to(socket.sessionId).emit('state', {
+        users: session.users,
+        votesRevealed: true
+      });
+    }
   });
 
   socket.on('clear', () => {
-    const sessionId = socket.sessionId;
-    const session = sessions[sessionId];
-    const user = session?.users[socket.id];
-    if (!user?.isAdmin) return;
-
-    Object.values(session.users).forEach(u => u.vote = null);
-    session.votesRevealed = false;
-
-    io.to(sessionId).emit('state', {
-      users: session.users,
-      votesRevealed: false
-    });
+    const session = sessions[socket.sessionId];
+    if (!session) return;
+    if (session.users[socket.id]?.isAdmin) {
+      Object.values(session.users).forEach(u => u.vote = null);
+      session.votesRevealed = false;
+      io.to(socket.sessionId).emit('state', {
+        users: session.users,
+        votesRevealed: false
+      });
+    }
   });
 
   socket.on('disconnect', () => {
-    const sessionId = socket.sessionId;
-    if (!sessionId || !sessions[sessionId]) return;
-
-    delete sessions[sessionId].users[socket.id];
-
-    if (Object.keys(sessions[sessionId].users).length === 0) {
-      delete sessions[sessionId];
-    } else {
-      io.to(sessionId).emit('state', {
-        users: sessions[sessionId].users,
-        votesRevealed: sessions[sessionId].votesRevealed
-      });
+    const session = sessions[socket.sessionId];
+    if (session) {
+      delete session.users[socket.id];
+      if (Object.keys(session.users).length === 0) {
+        delete sessions[socket.sessionId];
+      } else {
+        io.to(socket.sessionId).emit('state', {
+          users: session.users,
+          votesRevealed: session.votesRevealed
+        });
+      }
     }
   });
 });

@@ -1,30 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scrum Poker</title>
-
-  <!-- ✅ Define Tailwind config using window.tailwind -->
-  <script>
-    window.tailwind = {
-      config: {
-        darkMode: 'class'
-      }
-    };
-  </script>
-
-  <!-- ✅ Load Tailwind AFTER config -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <link rel="stylesheet" href="/styles/output.css" />
+  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col items-center p-6 transition-colors">
   <div class="w-full max-w-2xl">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold text-center w-full">Scrum Poker</h1>
-      <button onclick="toggleDarkMode()" class="ml-auto bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🌓</button>
+      <button onclick="document.documentElement.classList.toggle('dark')" class="ml-auto bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🌓</button>
     </div>
-
     <div id="setup" class="space-y-4">
       <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
       <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" />
@@ -33,57 +20,41 @@
         <button onclick="createSession()" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
       </div>
     </div>
-
     <div id="game" class="hidden mt-6 space-y-6">
-      <div class="text-center">
-        <h2 class="text-xl">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
-        <div id="adminControls" class="mt-4 hidden space-x-4">
-          <button onclick="revealVotes()" class="bg-purple-600 text-white px-4 py-2 rounded">Reveal Votes</button>
-          <button onclick="clearVotes()" class="bg-yellow-500 text-white px-4 py-2 rounded">Clear Votes</button>
-          <span class="text-green-600 font-semibold">(You are the admin)</span>
-        </div>
+      <h2 class="text-xl text-center">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
+      <div id="adminControls" class="text-center mt-4 hidden space-x-4">
+        <button onclick="revealVotes()" class="bg-purple-600 text-white px-4 py-2 rounded">Reveal Votes</button>
+        <button onclick="clearVotes()" class="bg-yellow-500 text-white px-4 py-2 rounded">Clear Votes</button>
       </div>
-
       <div class="text-center">
         <h3 class="text-lg mb-4">Choose your estimate</h3>
         <div id="cards" class="flex flex-wrap justify-center gap-4"></div>
       </div>
-
-      <div id="votes" class="text-center">
+      <div class="text-center">
         <h3 class="text-lg mb-4">Votes:</h3>
         <div id="voteList" class="flex flex-col gap-2"></div>
       </div>
     </div>
   </div>
-
   <script>
     const socket = io();
     const fibonacci = [0, 1, 2, 3, 5, 8, 13, 21, 34, '?'];
-
     let sessionId = '';
     let userName = '';
     let isAdmin = false;
     let votesRevealed = false;
 
-    function toggleDarkMode() {
-      document.documentElement.classList.toggle('dark');
-    }
-
     function createSession() {
-      fetch('/create-session')
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('sessionId').value = data.sessionId;
-        });
+      fetch('/create-session').then(res => res.json()).then(data => {
+        document.getElementById('sessionId').value = data.sessionId;
+      });
     }
 
     function joinSession() {
       sessionId = document.getElementById('sessionId').value.trim();
       userName = document.getElementById('name').value.trim();
       if (!sessionId || !userName) return alert('Enter session ID and name');
-
       socket.emit('join', { sessionId, name: userName });
-
       document.getElementById('setup').classList.add('hidden');
       document.getElementById('game').classList.remove('hidden');
       document.getElementById('usernameDisplay').textContent = userName;
@@ -119,26 +90,20 @@
       voteList.innerHTML = '';
       isAdmin = false;
       votesRevealed = revealed;
-
       Object.keys(users).forEach(id => {
         const user = users[id];
         if (user.name === userName) isAdmin = user.isAdmin;
-
         const row = document.createElement('div');
         row.className = 'flex justify-between bg-white dark:bg-gray-800 border dark:border-gray-600 rounded px-4 py-2 shadow';
-
         const nameSpan = document.createElement('span');
         nameSpan.className = 'font-semibold';
         nameSpan.textContent = user.name;
-
         const voteSpan = document.createElement('span');
         voteSpan.textContent = votesRevealed ? (user.vote ?? 'No vote') : (user.vote !== null ? 'Voted' : 'Waiting');
-
         row.appendChild(nameSpan);
         row.appendChild(voteSpan);
         voteList.appendChild(row);
       });
-
       document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
     });
 
