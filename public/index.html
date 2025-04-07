@@ -2,40 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scrum Poker</title>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    #cards .card { display: inline-block; margin: 10px; padding: 20px; border: 2px solid #444; border-radius: 8px; cursor: pointer; }
-    .selected { background: #add8e6; }
-    #votes { margin-top: 30px; }
-    .vote { margin: 5px; }
-    .admin-note { color: green; font-weight: bold; }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>Scrum Poker</h1>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col items-center p-6">
+  <div class="w-full max-w-2xl">
+    <h1 class="text-3xl font-bold text-center mb-6">Scrum Poker</h1>
 
-  <div id="setup">
-    <input id="sessionId" placeholder="Session ID" />
-    <input id="name" placeholder="Your Name" />
-    <button onclick="joinSession()">Join Session</button>
-    <p>Or <button onclick="createSession()">Create New Session</button></p>
-  </div>
-
-  <div id="game" style="display:none">
-    <h2>Welcome, <span id="usernameDisplay"></span></h2>
-    <div id="adminControls" style="display:none">
-      <button onclick="revealVotes()">Reveal Votes</button>
-      <p class="admin-note">You are the admin</p>
+    <div id="setup" class="space-y-4">
+      <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
+      <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" />
+      <div class="flex justify-between">
+        <button onclick="joinSession()" class="bg-blue-500 text-white px-4 py-2 rounded">Join Session</button>
+        <button onclick="createSession()" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
+      </div>
     </div>
 
-    <h3>Choose your estimate</h3>
-    <div id="cards"></div>
+    <div id="game" class="hidden mt-6 space-y-6">
+      <div class="text-center">
+        <h2 class="text-xl">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
+        <div id="adminControls" class="mt-4 hidden space-x-4">
+          <button onclick="revealVotes()" class="bg-purple-600 text-white px-4 py-2 rounded">Reveal Votes</button>
+          <button onclick="clearVotes()" class="bg-yellow-500 text-white px-4 py-2 rounded">Clear Votes</button>
+          <span class="text-green-600 font-semibold">(You are the admin)</span>
+        </div>
+      </div>
 
-    <div id="votes">
-      <h3>Votes:</h3>
-      <div id="voteList"></div>
+      <div class="text-center">
+        <h3 class="text-lg mb-4">Choose your estimate</h3>
+        <div id="cards" class="flex flex-wrap justify-center gap-4"></div>
+      </div>
+
+      <div id="votes" class="text-center">
+        <h3 class="text-lg mb-4">Votes:</h3>
+        <div id="voteList" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+      </div>
     </div>
   </div>
 
@@ -62,8 +65,8 @@
 
       socket.emit('join', { sessionId, name: userName });
 
-      document.getElementById('setup').style.display = 'none';
-      document.getElementById('game').style.display = 'block';
+      document.getElementById('setup').classList.add('hidden');
+      document.getElementById('game').classList.remove('hidden');
       document.getElementById('usernameDisplay').textContent = userName;
       renderCards();
     }
@@ -72,12 +75,12 @@
       const container = document.getElementById('cards');
       container.innerHTML = '';
       fibonacci.forEach(value => {
-        const card = document.createElement('div');
-        card.className = 'card';
+        const card = document.createElement('button');
+        card.className = 'card bg-white border px-4 py-3 rounded shadow text-lg font-semibold hover:bg-blue-100';
         card.textContent = value;
         card.onclick = () => {
-          document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
+          document.querySelectorAll('.card').forEach(c => c.classList.remove('bg-blue-300'));
+          card.classList.add('bg-blue-300');
           socket.emit('vote', value);
         };
         container.appendChild(card);
@@ -88,6 +91,10 @@
       socket.emit('reveal');
     }
 
+    function clearVotes() {
+      socket.emit('clear');
+    }
+
     socket.on('state', ({ users, votesRevealed }) => {
       const voteList = document.getElementById('voteList');
       voteList.innerHTML = '';
@@ -95,16 +102,18 @@
 
       Object.keys(users).forEach(id => {
         const user = users[id];
-        if (user.name === userName) {
-          isAdmin = user.isAdmin;
-        }
+        if (user.name === userName) isAdmin = user.isAdmin;
+
         const div = document.createElement('div');
-        div.className = 'vote';
-        div.textContent = votesRevealed ? `${user.name}: ${user.vote ?? 'No vote'}` : `${user.name}: Voted`;
+        div.className = 'p-4 bg-white rounded shadow';
+        const hasVoted = user.vote !== null;
+        div.textContent = votesRevealed
+          ? `${user.name}: ${hasVoted ? user.vote : 'No vote'}`
+          : `${user.name}: ${hasVoted ? 'Voted' : 'Waiting'}`;
         voteList.appendChild(div);
       });
 
-      document.getElementById('adminControls').style.display = isAdmin ? 'block' : 'none';
+      document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
     });
 
     socket.on('error', msg => alert(msg));

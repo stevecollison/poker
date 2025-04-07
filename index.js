@@ -69,6 +69,21 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('clear', () => {
+    const sessionId = socket.sessionId;
+    const session = sessions[sessionId];
+    const user = session?.users[socket.id];
+    if (!user?.isAdmin) return;
+
+    Object.values(session.users).forEach(u => u.vote = null);
+    session.votesRevealed = false;
+
+    io.to(sessionId).emit('state', {
+      users: session.users,
+      votesRevealed: false
+    });
+  });
+
   socket.on('disconnect', () => {
     const sessionId = socket.sessionId;
     if (!sessionId || !sessions[sessionId]) return;
