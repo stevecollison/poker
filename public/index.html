@@ -115,11 +115,13 @@
       isAdmin = false;
       votesRevealed = revealed;
 
-      const sortedUsers = Object.values(users).sort((a, b) => {
-  if (!votesRevealed) return 0; // Don’t sort if not revealed
+      let sortedUsers = Object.values(users);
+
+if (votesRevealed) {
   const parse = v => v === '?' ? Infinity : (v == null ? Infinity : Number(v));
-  return parse(a.vote) - parse(b.vote);
-});
+  sortedUsers = sortedUsers.sort((a, b) => parse(a.vote) - parse(b.vote));
+}
+
 
 sortedUsers.forEach(user => {
   if (user.name === userName) isAdmin = user.isAdmin;
