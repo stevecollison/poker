@@ -115,24 +115,29 @@
       isAdmin = false;
       votesRevealed = revealed;
 
-      Object.keys(users).forEach(id => {
-        const user = users[id];
-        if (user.name === userName) isAdmin = user.isAdmin;
+      const sortedUsers = Object.values(users).sort((a, b) => {
+  if (!votesRevealed) return 0; // Don’t sort if not revealed
+  const parse = v => v === '?' ? Infinity : (v == null ? Infinity : Number(v));
+  return parse(a.vote) - parse(b.vote);
+});
 
-        const row = document.createElement('div');
-        row.className = 'flex justify-between bg-white dark:bg-gray-800 border dark:border-gray-600 rounded px-4 py-2 shadow';
+sortedUsers.forEach(user => {
+  if (user.name === userName) isAdmin = user.isAdmin;
 
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'font-semibold';
-        nameSpan.textContent = user.name;
+  const row = document.createElement('div');
+  row.className = 'flex justify-between bg-white dark:bg-gray-800 border dark:border-gray-600 rounded px-4 py-2 shadow';
 
-        const voteSpan = document.createElement('span');
-        voteSpan.textContent = votesRevealed ? (user.vote ?? 'No vote') : (user.vote !== null ? 'Voted' : 'Waiting');
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'font-semibold';
+  nameSpan.textContent = user.name;
 
-        row.appendChild(nameSpan);
-        row.appendChild(voteSpan);
-        voteList.appendChild(row);
-      });
+  const voteSpan = document.createElement('span');
+  voteSpan.textContent = votesRevealed ? (user.vote ?? 'No vote') : (user.vote !== null ? 'Voted' : 'Waiting');
+
+  row.appendChild(nameSpan);
+  row.appendChild(voteSpan);
+  voteList.appendChild(row);
+});
 
       document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
     });
