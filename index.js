@@ -25,7 +25,7 @@ async function getSession(sessionId) {
 }
 
 async function saveSession(sessionId, session) {
-  await redis.set(`session:${sessionId}`, JSON.stringify(session), 'EX', 3600); // 1 hour expiry
+  await redis.set(`session:${sessionId}`, JSON.stringify(session), 'EX', 86400); // 1 day expiry
 }
 
 app.get('/create-session', async (req, res) => {
