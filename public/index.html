@@ -53,6 +53,18 @@
   </div>
 
   <script>
+
+  // Parse sessionId from the URL and autofill it
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParts = window.location.pathname.split('/');
+  const maybeSessionId = urlParts[1];
+  if (maybeSessionId && maybeSessionId.length >= 6) {
+    const sessionInput = document.getElementById('sessionId');
+    sessionInput.value = maybeSessionId;
+    sessionInput.style.display = 'none'; // Optional: hide the input
+  }
+});
+    
     const socket = io();
     const fibonacci = [0, 1, 2, 3, 5, 8, 13, '?'];
 
@@ -66,12 +78,13 @@
     }
 
     function createSession() {
-      fetch('/create-session')
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('sessionId').value = data.sessionId;
-        });
-    }
+     fetch('/create-session')
+     .then(res => res.json())
+     .then(data => {
+        window.location.href = `/${data.sessionId}`;
+    });
+}
+
 
     function joinSession() {
       sessionId = document.getElementById('sessionId').value.trim();
