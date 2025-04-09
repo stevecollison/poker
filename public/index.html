@@ -260,9 +260,10 @@ if (votesRevealed) {
     socket.on('clear', () => {
   // Deselect any highlighted card
  // Only remove active classes from cards inside the container
-container.querySelectorAll('.card').forEach(c => {
+ document.querySelectorAll('.card').forEach(c => {
   c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
 });
+
 
 });
 
