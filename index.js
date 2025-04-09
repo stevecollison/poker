@@ -1,9 +1,12 @@
-// Simple Scrum Poker Server (Node.js + Express + Socket.IO)
+// Scrum Poker Server using Express, Socket.IO and Redis (Upstash)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { nanoid } = require('nanoid');
 const path = require('path');
+const Redis = require('ioredis');
+
+const redis = new Redis(process.env.UPSTASH_REDIS_URL);
 
 const app = express();
 const server = http.createServer(app);
@@ -13,30 +16,40 @@ const io = new Server(server, {
   }
 });
 
-const sessions = {}; // In-memory session storage
-
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/create-session', (req, res) => {
+// Redis session helpers
+async function getSession(sessionId) {
+  const data = await redis.get(`session:${sessionId}`);
+  return data ? JSON.parse(data) : null;
+}
+
+async function saveSession(sessionId, session) {
+  await redis.set(`session:${sessionId}`, JSON.stringify(session), 'EX', 3600); // 1 hour expiry
+}
+
+app.get('/create-session', async (req, res) => {
   const sessionId = nanoid(6);
-  sessions[sessionId] = {
+  const session = {
     users: {},
     votesRevealed: false
   };
+  await saveSession(sessionId, session);
   res.json({ sessionId });
 });
 
 io.on('connection', (socket) => {
-  // Handle user joining a session
-  socket.on('join', ({ sessionId, name }) => {
-    if (!sessions[sessionId]) {
+  socket.on('join', async ({ sessionId, name }) => {
+    const session = await getSession(sessionId);
+    if (!session) {
       socket.emit('error', 'Session does not exist.');
       return;
     }
 
-    const session = sessions[sessionId];
     const isAdmin = Object.keys(session.users).length === 0;
     session.users[socket.id] = { name, vote: null, isAdmin };
+    await saveSession(sessionId, session);
+
     socket.join(sessionId);
     socket.sessionId = sessionId;
 
@@ -46,21 +59,19 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Handle voting
-  socket.on('vote', (voteValue) => {
+  socket.on('vote', async (voteValue) => {
     const sessionId = socket.sessionId;
-    if (!sessionId || !sessions[sessionId]) return;
+    const session = await getSession(sessionId);
+    if (!session) return;
 
-    const session = sessions[sessionId];
     session.users[socket.id].vote = voteValue;
+    await saveSession(sessionId, session);
 
-    // Emit updated state to all users
     io.to(sessionId).emit('state', {
       users: session.users,
       votesRevealed: session.votesRevealed
     });
 
-    // Notify admin if all non-admins have voted
     const allVoted = Object.values(session.users)
       .filter(u => !u.isAdmin)
       .every(u => u.vote !== null && u.vote !== undefined);
@@ -75,28 +86,30 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle reveal request (admin only)
-  socket.on('reveal', () => {
+  socket.on('reveal', async () => {
     const sessionId = socket.sessionId;
-    const user = sessions[sessionId]?.users[socket.id];
+    const session = await getSession(sessionId);
+    const user = session?.users[socket.id];
     if (!user?.isAdmin) return;
 
-    sessions[sessionId].votesRevealed = true;
+    session.votesRevealed = true;
+    await saveSession(sessionId, session);
+
     io.to(sessionId).emit('state', {
-      users: sessions[sessionId].users,
+      users: session.users,
       votesRevealed: true
     });
   });
 
-  // Handle clear request (admin only)
-  socket.on('clear', () => {
+  socket.on('clear', async () => {
     const sessionId = socket.sessionId;
-    const session = sessions[sessionId];
+    const session = await getSession(sessionId);
     const user = session?.users[socket.id];
     if (!user?.isAdmin) return;
 
     Object.values(session.users).forEach(u => u.vote = null);
     session.votesRevealed = false;
+    await saveSession(sessionId, session);
 
     io.to(sessionId).emit('state', {
       users: session.users,
@@ -104,18 +117,17 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Handle disconnects
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     const sessionId = socket.sessionId;
-    if (!sessionId || !sessions[sessionId]) return;
+    const session = await getSession(sessionId);
+    if (!session) return;
 
-    const session = sessions[sessionId];
     delete session.users[socket.id];
 
-    // Delete session if empty
     if (Object.keys(session.users).length === 0) {
-      delete sessions[sessionId];
+      await redis.del(`session:${sessionId}`);
     } else {
+      await saveSession(sessionId, session);
       io.to(sessionId).emit('state', {
         users: session.users,
         votesRevealed: session.votesRevealed
@@ -124,6 +136,5 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
