@@ -52,6 +52,15 @@
     </div>
   </div>
 
+  <div id="notification" class="fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-md opacity-0 transition-all duration-300 z-50 scale-95 pointer-events-none flex items-center gap-2">
+  <span>🔔 Everyone has voted!</span>
+</div>
+
+  <audio id="dingSound" preload="auto">
+  <source src="https://notificationsounds.com/storage/sounds/file-sounds-1141-pristine.mp3" type="audio/mpeg">
+</audio>
+
+
   <script>
 
   // Parse sessionId from the URL and autofill it
@@ -208,7 +217,20 @@ if (votesRevealed) {
 
     socket.on('everyoneVoted', () => {
   if (isAdmin && !votesRevealed) {
-    alert('Everyone has voted!');
+    const notification = document.getElementById('notification');
+    const ding = document.getElementById('dingSound');
+
+    notification.classList.add('opacity-100', 'scale-100');
+    notification.classList.remove('scale-95');
+
+    // Play the sound
+    if (ding) ding.play();
+
+    // Hide after 4 seconds
+    setTimeout(() => {
+      notification.classList.remove('opacity-100', 'scale-100');
+      notification.classList.add('scale-95');
+    }, 4000);
   }
 });
 
