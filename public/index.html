@@ -155,35 +155,38 @@ window.addEventListener('DOMContentLoaded', () => {
   const nonAdmins = sortedUsers.filter(u => !u.isAdmin);
 const everyoneVoted = nonAdmins.length > 0 && nonAdmins.every(u => u.vote !== null && u.vote !== undefined);
 
+// Only trigger the bell once per round when everyone finishes voting
+if (everyoneVoted && !votesRevealed && !window._notifiedOnce) {
+  window._notifiedOnce = true;
 
-  // ✅ If admin and everyone voted, trigger bell (only once)
-  if (everyoneVoted && !votesRevealed && !window._notifiedOnce) {
+  const notification = document.getElementById('notification');
+  notification.classList.add('opacity-100', 'scale-100');
+  notification.classList.remove('scale-95');
 
-    window._notifiedOnce = true;
+  new AudioContext().resume().then(() => {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
+    oscillator.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.1);
+  });
 
-    const notification = document.getElementById('notification');
+  setTimeout(() => {
+    notification.classList.remove('opacity-100', 'scale-100');
+    notification.classList.add('scale-95');
+  }, 4000);
+}
 
-    notification.classList.add('opacity-100', 'scale-100');
-    notification.classList.remove('scale-95');
 
-    new AudioContext().resume().then(() => {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = ctx.createOscillator();
-      oscillator.type = "square";
-      oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
-      oscillator.connect(ctx.destination);
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + 0.1);
-    });
 
-    setTimeout(() => {
-      notification.classList.remove('opacity-100', 'scale-100');
-      notification.classList.add('scale-95');
-    }, 4000);
-  }
+// Reset bell flag after a reveal or clear
+if (votesRevealed) {
+  window._notifiedOnce = false;
+}
 
-  // ✅ Reset _notifiedOnce when votes are cleared
-  if (!votesRevealed) window._notifiedOnce = false;
+
 
   // ... continue your existing sorting and rendering logic
 
@@ -251,6 +254,9 @@ if (votesRevealed) {
 
       document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
     });
+    socket.on('clear', () => {
+  window._notifiedOnce = false;
+});
 
     socket.on('error', msg => alert(msg));
 
