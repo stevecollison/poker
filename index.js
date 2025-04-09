@@ -142,5 +142,11 @@ io.on('connection', (socket) => {
   });
 });
 
+// Serve index.html for all unmatched routes (like /abc123)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 const PORT = process.env.PORT || 3000;
+
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
