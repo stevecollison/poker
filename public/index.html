@@ -175,9 +175,12 @@ document.getElementById('name').focus();
   </div>
 `;
 
-  isAdmin = false;
-  votesRevealed = revealed;
-  voteList.className = 'max-w-md mx-auto flex flex-col gap-2';
+votesRevealed = revealed;
+
+let sortedUsers = Object.values(users);
+const currentUser = sortedUsers.find(u => u.name === userName);
+isAdmin = currentUser?.isAdmin || false;
+
 
   let sortedUsers = Object.values(users);
 
