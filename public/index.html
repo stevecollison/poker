@@ -208,26 +208,28 @@ if (votesRevealed) {
 
   // ... continue your existing sorting and rendering logic
 
-  voteList.className = 'flex flex-wrap justify-center gap-4';
+  voteList.className = 'grid grid-cols-2 sm:grid-cols-3 gap-6 justify-center items-start';
+
 
 
 sortedUsers.forEach(user => {
   if (user.name === userName) isAdmin = user.isAdmin;
 
-  const container = document.createElement('div');
-  container.className = 'flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded shadow w-24';
+  const card = document.createElement('div');
+card.className = 'bg-white dark:bg-gray-800 border dark:border-gray-600 rounded shadow p-4 w-28 text-center';
 
-  const nameSpan = document.createElement('div');
-  nameSpan.className = 'font-semibold text-center break-words';
-  nameSpan.textContent = user.name;
+const nameDiv = document.createElement('div');
+nameDiv.className = 'font-semibold text-sm mb-1 break-words';
+nameDiv.textContent = user.name;
 
-  const voteSpan = document.createElement('div');
-  voteSpan.className = 'text-center mt-1';
-  voteSpan.textContent = votesRevealed ? (user.vote ?? 'No vote') : (user.vote !== null ? 'Voted' : 'Waiting');
+const voteDiv = document.createElement('div');
+voteDiv.className = 'text-xl font-bold';
+voteDiv.textContent = votesRevealed ? (user.vote ?? '—') : (user.vote !== null ? '✓' : '…');
 
-  container.appendChild(nameSpan);
-  container.appendChild(voteSpan);
-  voteList.appendChild(container);
+card.appendChild(nameDiv);
+card.appendChild(voteDiv);
+voteList.appendChild(card);
+
 
 
 });
