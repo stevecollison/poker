@@ -128,9 +128,12 @@ window.addEventListener('DOMContentLoaded', () => {
     card.onclick = () => {
       if (votesRevealed) return;
 
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('bg-blue-300'));
-      card.classList.add('bg-blue-300');
-      socket.emit('vote', value);
+      document.querySelectorAll('.card').forEach(c => {
+  c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+});
+card.classList.add('bg-blue-300', 'dark:bg-blue-700');
+socket.emit('vote', value);
+
     };
     container.appendChild(card);
   });
