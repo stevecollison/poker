@@ -16,9 +16,12 @@
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen px-6 pt-8 transition-colors">
 <div class="w-full flex justify-center px-4">
 <div class="max-w-md w-full mx-auto text-center">
-    <!-- Logo -->
-    <div class="flex flex-col items-center mb-6 space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
+     <!-- Logo centered above welcome -->
+<div class="flex justify-center mb-4">
   <img src="/scrumpokerlogo.png" alt="Scrum Poker Logo" class="h-16">
+</div>
+<!-- Dark mode toggle moved to top right -->
+<div class="absolute top-4 right-4">
   <button onclick="toggleDarkMode()" class="bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🌓</button>
 </div>
 
@@ -36,9 +39,9 @@
 </div>
 
     <div id="game" class="hidden mt-6 space-y-6">
-      <div class="text-center">
-        <h2 class="text-xl">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
-        <p id="sessionCodeDisplay" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Session ID: </p>
+    <div class="text-center space-y-1">
+  <h2 class="text-xl">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
+  <p id="sessionCodeDisplay" class="text-sm text-gray-500 dark:text-gray-400">Session ID: </p>
         <div id="adminControls" class="mt-4 hidden space-x-4">
           <button onclick="revealVotes()" class="bg-purple-600 text-white px-4 py-2 rounded">Reveal Votes</button>
           <button onclick="clearVotes()" class="bg-yellow-500 text-white px-4 py-2 rounded">Clear Votes</button>
@@ -48,7 +51,7 @@
 
       <div class="text-center">
         <h3 class="text-lg mb-4">Choose your estimate</h3>
-        <div id="cards" class="flex flex-wrap justify-center gap-4"></div>
+        <div id="cards" class="flex flex-wrap justify-center gap-2 sm:gap-4"></div>
       </div>
 
       <div id="votes" class="text-center">
@@ -134,8 +137,7 @@ document.getElementById('name').focus();
   container.innerHTML = '';
   fibonacci.forEach(value => {
     const card = document.createElement('div');
-    card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors duration-200';
-    card.textContent = value;
+    card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200';    card.textContent = value;
     card.onclick = () => {
       if (votesRevealed) return;
 
@@ -162,6 +164,7 @@ document.getElementById('name').focus();
   voteList.innerHTML = '';
   isAdmin = false;
   votesRevealed = revealed;
+  voteList.className = 'max-w-md mx-auto flex flex-col gap-2';
 
   let sortedUsers = Object.values(users);
 
@@ -210,7 +213,7 @@ sortedUsers.forEach(user => {
   if (user.name === userName) isAdmin = user.isAdmin;
 
   const row = document.createElement('div');
-  row.className = 'flex justify-between bg-white dark:bg-gray-800 border dark:border-gray-600 rounded px-4 py-2 shadow';
+  row.className = 'flex justify-between max-w-md mx-auto bg-white dark:bg-gray-800 border dark:border-gray-600 rounded px-4 py-2 shadow';
 
   const nameSpan = document.createElement('span');
   nameSpan.className = 'font-semibold';
