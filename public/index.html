@@ -56,10 +56,6 @@
   <span>🔔 Everyone has voted!</span>
 </div>
 
-<audio id="dingSound" preload="auto">
-  <source src="https://freesound.org/data/previews/341/341695_6263083-lq.mp3" type="audio/mpeg">
-</audio>
-
 
 
   <script>
@@ -227,21 +223,29 @@ if (votesRevealed) {
     socket.on('everyoneVoted', () => {
   if (isAdmin && !votesRevealed) {
     const notification = document.getElementById('notification');
-    const ding = document.getElementById('dingSound');
 
     notification.classList.add('opacity-100', 'scale-100');
     notification.classList.remove('scale-95');
 
-    // Play the sound
-    if (ding) ding.play();
+    // 🔔 Play the system-like beep
+    new AudioContext().resume().then(() => {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
+      oscillator.connect(ctx.destination);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.1); // 100ms beep
+    });
 
-    // Hide after 4 seconds
+    // Hide notification after 4 seconds
     setTimeout(() => {
       notification.classList.remove('opacity-100', 'scale-100');
       notification.classList.add('scale-95');
     }, 4000);
   }
 });
+
 
     socket.on('error', msg => alert(msg));
 
