@@ -109,10 +109,12 @@ window.addEventListener('DOMContentLoaded', () => {
         card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 transition';
         card.textContent = value;
         card.onclick = () => {
-          document.querySelectorAll('.card').forEach(c => c.classList.remove('bg-blue-300'));
-          card.classList.add('bg-blue-300');
-          socket.emit('vote', value);
-        };
+        if (votesRevealed) return; // 🚫 Disable card clicks if votes are revealed
+
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('bg-blue-300'));
+        card.classList.add('bg-blue-300');
+        socket.emit('vote', value);
+      };
         container.appendChild(card);
       });
     }
@@ -136,6 +138,8 @@ window.addEventListener('DOMContentLoaded', () => {
 if (votesRevealed) {
   const parse = v => v === '?' ? Infinity : (v == null ? Infinity : Number(v));
   sortedUsers = sortedUsers.sort((a, b) => parse(a.vote) - parse(b.vote));
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('bg-blue-300'));
+}
 }
 
 
