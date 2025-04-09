@@ -140,7 +140,7 @@ if (votesRevealed) {
   sortedUsers = sortedUsers.sort((a, b) => parse(a.vote) - parse(b.vote));
   document.querySelectorAll('.card').forEach(c => c.classList.remove('bg-blue-300'));
 }
-}
+
 
 
 sortedUsers.forEach(user => {
