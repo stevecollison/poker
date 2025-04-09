@@ -152,9 +152,9 @@ window.addEventListener('DOMContentLoaded', () => {
   let sortedUsers = Object.values(users);
 
   // ✅ Check if all non-admins have voted
-  const everyoneVoted = sortedUsers
-    .filter(u => !u.isAdmin)
-    .every(u => u.vote !== null && u.vote !== undefined);
+  const nonAdmins = sortedUsers.filter(u => !u.isAdmin);
+const everyoneVoted = nonAdmins.length > 0 && nonAdmins.every(u => u.vote !== null && u.vote !== undefined);
+
 
   // ✅ If admin and everyone voted, trigger bell (only once)
   if (everyoneVoted && !votesRevealed && !window._notifiedOnce) {
