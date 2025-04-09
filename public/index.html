@@ -56,9 +56,10 @@
   <span>🔔 Everyone has voted!</span>
 </div>
 
-  <audio id="dingSound" preload="auto">
-  <source src="https://notificationsounds.com/storage/sounds/file-sounds-1141-pristine.mp3" type="audio/mpeg">
+<audio id="dingSound" preload="auto">
+  <source src="https://freesound.org/data/previews/341/341695_6263083-lq.mp3" type="audio/mpeg">
 </audio>
+
 
 
   <script>
@@ -87,12 +88,20 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function createSession() {
-     fetch('/create-session')
-     .then(res => res.json())
-     .then(data => {
-        window.location.href = `/${data.sessionId}`;
+  fetch('/create-session')
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to create session.');
+      return res.json();
+    })
+    .then(data => {
+      window.location.href = `/${data.sessionId}`;
+    })
+    .catch(err => {
+      alert(`Error: ${err.message}`);
+      console.error('Create session error:', err);
     });
 }
+
 
 
     function joinSession() {
