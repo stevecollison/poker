@@ -264,12 +264,12 @@ if (votesRevealed) {
     });
     socket.on('clear', () => {
   // Deselect any highlighted card
- // Only remove active classes from cards inside the container
- document.querySelectorAll('.card').forEach(c => {
-  c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
-});
+  document.querySelectorAll('.card').forEach(c => {
+    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+  });
 
-
+  // ✅ Reset the bell so it can beep next time
+  window._notifiedOnce = false;
 });
 
 
