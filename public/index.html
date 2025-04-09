@@ -14,23 +14,25 @@
 </script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen px-6 pt-8 transition-colors">
-  <div class="w-full max-w-2xl">
-    <div class="flex justify-between items-center mb-6">
-    <div class="w-full flex justify-center mb-6">
-  <img src="scrumpokerlogo.png" alt="Scrum Poker Logo" class="h-20 md:h-24" />
-</div>
-
-      <button onclick="toggleDarkMode()" class="ml-auto bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🌓</button>
+<div class="w-full flex justify-center px-4">
+<div class="max-w-md w-full mx-auto">
+    <!-- Logo -->
+    <div class="flex items-center justify-between mb-6">
+      <img src="/path-to-your-logo.png" alt="Scrum Poker Logo" class="h-16">
+      <button onclick="toggleDarkMode()" class="bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🌓</button>
     </div>
 
+    <!-- Form -->
     <form id="setup" class="space-y-4" onsubmit="joinSession(); return false;">
-  <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
-  <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" />
-  <div class="flex justify-between">
-    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Join Session</button>
-    <button type="button" onclick="createSession()" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
+      <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
+      <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" />
+      <div class="flex justify-between">
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Join Session</button>
+        <button type="button" onclick="createSession()" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
+      </div>
+    </form>
   </div>
-</form>
+</div>
 
     <div id="game" class="hidden mt-6 space-y-6">
       <div class="text-center">
