@@ -6,7 +6,13 @@ const { nanoid } = require('nanoid');
 const path = require('path');
 const Redis = require('ioredis');
 
-const redis = new Redis(process.env.UPSTASH_REDIS_URL);
+const redis = new Redis(process.env.UPSTASH_REDIS_URL, {
+  tls: {} // 👈 REQUIRED for Upstash to enable TLS
+});
+
+redis.on('error', (err) => {
+  console.error('❌ Redis connection error:', err);
+});
 
 const app = express();
 const server = http.createServer(app);
