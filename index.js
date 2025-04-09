@@ -21,13 +21,13 @@ app.get('/create-session', (req, res) => {
   const sessionId = nanoid(6);
   sessions[sessionId] = {
     users: {},
-    votesRevealed: false,
-    admin: null
+    votesRevealed: false
   };
   res.json({ sessionId });
 });
 
 io.on('connection', (socket) => {
+  // Handle user joining a session
   socket.on('join', ({ sessionId, name }) => {
     if (!sessions[sessionId]) {
       socket.emit('error', 'Session does not exist.');
@@ -46,17 +46,36 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Handle voting
   socket.on('vote', (voteValue) => {
     const sessionId = socket.sessionId;
     if (!sessionId || !sessions[sessionId]) return;
-    sessions[sessionId].users[socket.id].vote = voteValue;
 
+    const session = sessions[sessionId];
+    session.users[socket.id].vote = voteValue;
+
+    // Emit updated state to all users
     io.to(sessionId).emit('state', {
-      users: sessions[sessionId].users,
-      votesRevealed: sessions[sessionId].votesRevealed
+      users: session.users,
+      votesRevealed: session.votesRevealed
     });
+
+    // Notify admin if all non-admins have voted
+    const allVoted = Object.values(session.users)
+      .filter(u => !u.isAdmin)
+      .every(u => u.vote !== null && u.vote !== undefined);
+
+    if (allVoted) {
+      const adminSocketId = Object.entries(session.users)
+        .find(([_, u]) => u.isAdmin)?.[0];
+
+      if (adminSocketId) {
+        io.to(adminSocketId).emit('everyoneVoted');
+      }
+    }
   });
 
+  // Handle reveal request (admin only)
   socket.on('reveal', () => {
     const sessionId = socket.sessionId;
     const user = sessions[sessionId]?.users[socket.id];
@@ -69,6 +88,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Handle clear request (admin only)
   socket.on('clear', () => {
     const sessionId = socket.sessionId;
     const session = sessions[sessionId];
@@ -84,22 +104,26 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Handle disconnects
   socket.on('disconnect', () => {
     const sessionId = socket.sessionId;
     if (!sessionId || !sessions[sessionId]) return;
 
-    delete sessions[sessionId].users[socket.id];
+    const session = sessions[sessionId];
+    delete session.users[socket.id];
 
-    if (Object.keys(sessions[sessionId].users).length === 0) {
+    // Delete session if empty
+    if (Object.keys(session.users).length === 0) {
       delete sessions[sessionId];
     } else {
       io.to(sessionId).emit('state', {
-        users: sessions[sessionId].users,
-        votesRevealed: sessions[sessionId].votesRevealed
+        users: session.users,
+        votesRevealed: session.votesRevealed
       });
     }
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

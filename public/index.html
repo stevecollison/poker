@@ -141,8 +141,56 @@ sortedUsers.forEach(user => {
   voteList.appendChild(row);
 });
 
+
+if (votesRevealed) {
+  const numericalVotes = sortedUsers
+    .map(u => u.vote)
+    .filter(v => !isNaN(v) && v !== null)
+    .map(Number);
+
+  if (numericalVotes.length > 0) {
+    const mean = (numericalVotes.reduce((a, b) => a + b, 0) / numericalVotes.length).toFixed(2);
+
+    const median = (() => {
+      const sorted = [...numericalVotes].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 === 0
+        ? ((sorted[mid - 1] + sorted[mid]) / 2).toFixed(2)
+        : sorted[mid].toFixed(2);
+    })();
+
+    const mode = (() => {
+      const freq = {};
+      let maxFreq = 0;
+      let modeVal = null;
+      for (const val of numericalVotes) {
+        freq[val] = (freq[val] || 0) + 1;
+        if (freq[val] > maxFreq) {
+          maxFreq = freq[val];
+          modeVal = val;
+        }
+      }
+      return modeVal;
+    })();
+
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'text-sm mt-4 text-center text-gray-700 dark:text-gray-300';
+    statsDiv.innerHTML = `<strong>Mean:</strong> ${mean} &nbsp; 
+                          <strong>Median:</strong> ${median} &nbsp; 
+                          <strong>Mode:</strong> ${mode}`;
+    voteList.appendChild(statsDiv);
+  }
+}
+
+
       document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
     });
+
+    socket.on('everyoneVoted', () => {
+  if (isAdmin && !votesRevealed) {
+    alert('Everyone has voted!');
+  }
+});
 
     socket.on('error', msg => alert(msg));
   </script>
