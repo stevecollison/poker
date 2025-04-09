@@ -212,27 +212,24 @@ if (votesRevealed) {
 
   // ... continue your existing sorting and rendering logic
 
-  voteList.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-center';
+  voteList.className = 'grid grid-cols-2 gap-x-4 gap-y-2 justify-start max-w-md mx-auto';
 
 
 
 sortedUsers.forEach(user => {
   if (user.name === userName) isAdmin = user.isAdmin;
 
-  const container = document.createElement('div');
-  container.className = 'flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded shadow w-24 h-24';
+  const nameDiv = document.createElement('div');
+nameDiv.className = 'text-left font-medium truncate';
+nameDiv.textContent = user.name;
 
-  const nameSpan = document.createElement('div');
-  nameSpan.className = 'font-semibold text-center break-words';
-  nameSpan.textContent = user.name;
+const voteDiv = document.createElement('div');
+voteDiv.className = 'text-right font-semibold';
+voteDiv.textContent = votesRevealed ? (user.vote ?? 'No vote') : (user.vote !== null ? '✔️' : '…');
 
-  const voteSpan = document.createElement('div');
-  voteSpan.className = 'text-center mt-1 text-lg';
-  voteSpan.textContent = votesRevealed ? (user.vote ?? 'No vote') : (user.vote !== null ? 'Voted' : 'Waiting');
+voteList.appendChild(nameDiv);
+voteList.appendChild(voteDiv);
 
-  container.appendChild(nameSpan);
-  container.appendChild(voteSpan);
-  voteList.appendChild(container);
 });
 
 
