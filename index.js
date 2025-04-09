@@ -82,14 +82,14 @@ io.on('connection', (socket) => {
       .filter(u => !u.isAdmin)
       .every(u => u.vote !== null && u.vote !== undefined);
 
-    if (allVoted) {
-      const adminSocketId = Object.entries(session.users)
-        .find(([_, u]) => u.isAdmin)?.[0];
-
-      if (adminSocketId) {
-        io.to(adminSocketId).emit('everyoneVoted');
+      if (allVoted && !session.votesRevealed) {
+        const adminSocketId = Object.entries(session.users)
+          .find(([_, u]) => u.isAdmin)?.[0];
+      
+        if (adminSocketId) {
+          io.to(adminSocketId).emit('everyoneVoted');
+        }
       }
-    }
   });
 
   socket.on('reveal', async () => {
