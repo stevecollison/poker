@@ -29,10 +29,10 @@
     <!-- Form -->
     <form id="setup" class="space-y-4" onsubmit="joinSession(); return false;">
       <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
-      <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" />
+      <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" autofocus autocomplete="off" />
       <div class="flex justify-between">
         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Join Session</button>
-        <button type="button" onclick="createSession()" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
+        <button id="createSessionBtn" type="button" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
       </div>
     </form>
   </div>
@@ -71,20 +71,36 @@
   <script>
   
 
-
+    function createSession() {
+  fetch('/create-session')
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to create session.');
+      return res.json();
+    })
+    .then(data => {
+      window.location.href = `/${data.sessionId}`;
+    })
+    .catch(err => {
+      alert(`Error: ${err.message}`);
+      console.error('Create session error:', err);
+    });
+}
   // Parse sessionId from the URL and autofill it
   window.addEventListener('DOMContentLoaded', () => {
   const urlParts = window.location.pathname.split('/');
   const maybeSessionId = urlParts[1];
   if (maybeSessionId && maybeSessionId.length >= 6) {
     const sessionInput = document.getElementById('sessionId');
-    const createBtn = document.querySelector('button[onclick="createSession()"]');
+    const createBtn = document.getElementById('createSessionBtn');
+
 
     sessionInput.value = maybeSessionId;
     sessionInput.style.display = 'none'; // Optional
     if (createBtn) createBtn.style.display = 'none'; // ✅ Hide "Create Session" button
   }
 });
+document.getElementById('createSessionBtn')?.addEventListener('click', createSession);
+
 document.getElementById('name').focus();
 
     
@@ -101,20 +117,7 @@ document.getElementById('name').focus();
       document.documentElement.classList.toggle('dark');
     }
 
-    function createSession() {
-  fetch('/create-session')
-    .then(res => {
-      if (!res.ok) throw new Error('Failed to create session.');
-      return res.json();
-    })
-    .then(data => {
-      window.location.href = `/${data.sessionId}`;
-    })
-    .catch(err => {
-      alert(`Error: ${err.message}`);
-      console.error('Create session error:', err);
-    });
-}
+
 
 
 
@@ -169,6 +172,7 @@ document.getElementById('name').focus();
 
   let sortedUsers = Object.values(users);
 
+
   // ✅ Check if all non-admins have voted
   const nonAdmins = sortedUsers.filter(u => !u.isAdmin);
 const everyoneVoted = nonAdmins.length > 0 && nonAdmins.every(u => u.vote !== null && u.vote !== undefined);
@@ -210,7 +214,7 @@ if (votesRevealed) {
 
   voteList.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-center';
 
-let sortedUsers = Object.values(users);
+
 
 sortedUsers.forEach(user => {
   if (user.name === userName) isAdmin = user.isAdmin;
