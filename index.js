@@ -112,15 +112,18 @@ io.on('connection', (socket) => {
     const session = await getSession(sessionId);
     const user = session?.users[socket.id];
     if (!user?.isAdmin) return;
-
+  
     Object.values(session.users).forEach(u => u.vote = null);
     session.votesRevealed = false;
     await saveSession(sessionId, session);
-
+  
     io.to(sessionId).emit('state', {
       users: session.users,
       votesRevealed: false
     });
+  
+    // ✅ This is the right spot!
+    io.to(sessionId).emit('clear');
   });
 
   socket.on('disconnect', async () => {
