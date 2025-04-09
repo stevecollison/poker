@@ -20,14 +20,14 @@
       <button onclick="toggleDarkMode()" class="ml-auto bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🌓</button>
     </div>
 
-    <div id="setup" class="space-y-4">
-      <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
-      <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" />
-      <div class="flex justify-between">
-        <button onclick="joinSession()" class="bg-blue-500 text-white px-4 py-2 rounded">Join Session</button>
-        <button onclick="createSession()" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
-      </div>
-    </div>
+    <form id="setup" class="space-y-4" onsubmit="joinSession(); return false;">
+  <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
+  <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" />
+  <div class="flex justify-between">
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Join Session</button>
+    <button type="button" onclick="createSession()" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
+  </div>
+</form>
 
     <div id="game" class="hidden mt-6 space-y-6">
       <div class="text-center">
@@ -63,15 +63,20 @@
 
 
   // Parse sessionId from the URL and autofill it
-window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', () => {
   const urlParts = window.location.pathname.split('/');
   const maybeSessionId = urlParts[1];
   if (maybeSessionId && maybeSessionId.length >= 6) {
     const sessionInput = document.getElementById('sessionId');
+    const createBtn = document.querySelector('button[onclick="createSession()"]');
+
     sessionInput.value = maybeSessionId;
-    sessionInput.style.display = 'none'; // Optional: hide the input
+    sessionInput.style.display = 'none'; // Optional
+    if (createBtn) createBtn.style.display = 'none'; // ✅ Hide "Create Session" button
   }
 });
+document.getElementById('name').focus();
+
     
     const socket = io();
     const fibonacci = [0, 1, 2, 3, 5, 8, 13, '?'];
