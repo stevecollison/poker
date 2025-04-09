@@ -32,6 +32,7 @@
     <div id="game" class="hidden mt-6 space-y-6">
       <div class="text-center">
         <h2 class="text-xl">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
+        <p id="sessionCodeDisplay" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Session ID: </p>
         <div id="adminControls" class="mt-4 hidden space-x-4">
           <button onclick="revealVotes()" class="bg-purple-600 text-white px-4 py-2 rounded">Reveal Votes</button>
           <button onclick="clearVotes()" class="bg-yellow-500 text-white px-4 py-2 rounded">Clear Votes</button>
@@ -82,6 +83,8 @@
       document.getElementById('setup').classList.add('hidden');
       document.getElementById('game').classList.remove('hidden');
       document.getElementById('usernameDisplay').textContent = userName;
+      document.getElementById('sessionCodeDisplay').textContent = `Session ID: ${sessionId}`;
+
       renderCards();
     }
 
