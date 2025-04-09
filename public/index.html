@@ -259,7 +259,13 @@ if (votesRevealed) {
     });
     socket.on('clear', () => {
   window._notifiedOnce = false;
+
+  // ✅ Deselect any highlighted card
+  document.querySelectorAll('.card').forEach(c => {
+    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+  });
 });
+
 
     socket.on('error', msg => alert(msg));
 
