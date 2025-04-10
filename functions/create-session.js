@@ -1,11 +1,13 @@
-import { nanoid } from 'nanoid'
-
 export async function onRequestGet() {
-  const sessionId = nanoid(6)
-
-  return new Response(JSON.stringify({ sessionId }), {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-}
+    const nanoid = () =>
+      crypto.randomUUID().replace(/-/g, '').slice(0, 6); // Simple fallback
+  
+    const sessionId = nanoid();
+  
+    return new Response(JSON.stringify({ sessionId }), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+  
