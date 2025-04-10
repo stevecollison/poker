@@ -4,16 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scrum Poker</title>
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
   tailwind.config = {
-    darkMode: 'class'
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+          heading: ['Space Grotesk', 'sans-serif']
+        }
+      }
+    }
   }
 </script>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen px-6 pt-8 transition-colors">
+<body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen px-6 pt-8 transition-colors">
 <div class="w-full flex justify-center px-4">
 <div class="max-w-md w-full mx-auto text-center">
      <!-- Logo centered above welcome -->
@@ -40,7 +49,7 @@
 
     <div id="game" class="hidden mt-6 space-y-6">
     <div class="text-center space-y-1">
-  <h2 class="text-xl">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
+  <h2 class="text-xl font-heading">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
   <p id="sessionCodeDisplay" class="text-sm text-gray-500 dark:text-gray-400">Session ID: </p>
         <div id="adminControls" class="mt-4 hidden space-x-4">
           <button onclick="revealVotes()" class="bg-purple-600 text-white px-4 py-2 rounded">Reveal Votes</button>
