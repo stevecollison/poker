@@ -8,8 +8,14 @@ export async function onRequestPost(context) {
       headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` },
     });
   
-    let session = await getResp.json();
-    session = session.result ? JSON.parse(session.result) : null;
+    let rawSession = await getResp.json();
+    // Check for 'result' first, then 'value'
+    let session = rawSession.result
+      ? JSON.parse(rawSession.result)
+      : rawSession.value
+        ? JSON.parse(rawSession.value)
+        : null;
+  
   
     if (!session) {
       return new Response(JSON.stringify({ error: 'Session not found' }), {
