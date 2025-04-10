@@ -43,9 +43,10 @@ export async function onRequestPost(context) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          value: JSON.stringify(session),
-          expiration: 86400,
-        }),
+            value: session, // <- already a JS object, NOT a string
+            expiration: 86400,
+          })
+          ,
       });
   
       return new Response(JSON.stringify({ success: true }), {

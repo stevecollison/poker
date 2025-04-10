@@ -4,31 +4,38 @@ export async function onRequestPost(context) {
   const { sessionId, userName } = body;
   const sessionKey = `session:${sessionId}`;
 
+  // Fetch current session
   const getResp = await fetch(`${UPSTASH_REDIS_REST_URL}/get/${sessionKey}`, {
     headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` },
   });
 
-  let sessionData = await getResp.json();
-  let session = sessionData.result
-    ? JSON.parse(sessionData.result)
-    : sessionData.value
-      ? JSON.parse(sessionData.value)
-      : { users: [], votes: {}, votesRevealed: false };
+  let raw = await getResp.json();
+  let session = raw.result || raw.value;
 
-  // Convert legacy string users to object format if needed
-  if (Array.isArray(session.users) && typeof session.users[0] === "string") {
-    session.users = session.users.map(name => ({ name }));
+  // Parse if it's a string
+  if (typeof session === 'string') {
+    try {
+      session = JSON.parse(session);
+    } catch {
+      session = null;
+    }
   }
 
-  // Only add user if they don't exist already
-  if (!session.users.some(u => u.name === userName)) {
-    session.users.push({
-      name: userName,
-      isAdmin: session.users.length === 0, // First user is admin
-      vote: null
-    });
+  // Default session if new
+  if (!session || typeof session !== 'object') {
+    session = {
+      users: [],
+      votes: {},
+      votesRevealed: false
+    };
   }
 
+  // Add user if not already added
+  if (!session.users.includes(userName)) {
+    session.users.push(userName);
+  }
+
+  // Save session (DO NOT double stringify!)
   await fetch(`${UPSTASH_REDIS_REST_URL}/set/${sessionKey}`, {
     method: 'POST',
     headers: {
@@ -36,7 +43,7 @@ export async function onRequestPost(context) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      value: JSON.stringify(session),
+      value: session,
       expiration: 86400,
     }),
   });
