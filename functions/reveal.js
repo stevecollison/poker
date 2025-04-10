@@ -37,7 +37,7 @@ export async function onRequestPost(context) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        value: JSON.stringify(session), // Keep this
+        value: session,
         expiration: 86400,
       }),
     });
