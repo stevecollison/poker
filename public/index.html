@@ -249,7 +249,7 @@ sortedUsers.forEach(user => {
   nameDiv.className = 'text-left truncate';
 
   const voteDiv = document.createElement('div');
-  voteDiv.textContent = votesRevealed ? (user.vote ?? 'No vote') : (user.vote !== null ? '✔️' : '…');
+  voteDiv.textContent = votesRevealed ? (user.vote ?? ' - ') : (user.vote !== null ? '✔️' : '…');
   voteDiv.className = 'text-right';
 
   row.appendChild(nameDiv);
