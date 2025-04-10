@@ -1,14 +1,14 @@
+import { nanoid } from 'nanoid';
+
 export async function onRequestGet(context) {
   const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = context.env;
-
-  // ✅ Generate a simple random session ID (6-character alphanumeric)
-  const sessionId = Math.random().toString(36).substring(2, 8);
+  const sessionId = nanoid(6);
   const sessionKey = `session:${sessionId}`;
 
   const session = {
     users: [],
     votes: {},
-    votesRevealed: false
+    votesRevealed: false,
   };
 
   await fetch(`${UPSTASH_REDIS_REST_URL}/set/${sessionKey}`, {
@@ -18,14 +18,12 @@ export async function onRequestGet(context) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      value: session,
-      expiration: 86400
-    })
+      value: JSON.stringify(session),
+      expiration: 86400,
+    }),
   });
 
   return new Response(JSON.stringify({ sessionId }), {
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' },
   });
 }
