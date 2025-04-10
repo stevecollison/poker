@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { nanoid } from "nanoid";
+import { nanoid } from "nanoid/non-secure";
 
 export async function onRequestGet(context) {
   try {
