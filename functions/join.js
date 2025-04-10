@@ -1,51 +1,47 @@
 export async function onRequestPost(context) {
-  try {
-    const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = context.env;
-    if (!UPSTASH_REDIS_REST_URL || !UPSTASH_REDIS_REST_TOKEN) {
-      return new Response("Missing Upstash credentials", { status: 500 });
-    }
+  const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = context.env;
+  const body = await context.request.json();
+  const { sessionId, userName } = body;
+  const sessionKey = `session:${sessionId}`;
 
-    const body = await context.request.json();
-    const { sessionId, userName } = body;
+  const getResp = await fetch(`${UPSTASH_REDIS_REST_URL}/get/${sessionKey}`, {
+    headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` },
+  });
 
-    if (!sessionId || !userName) {
-      return new Response("Missing sessionId or userName", { status: 400 });
-    }
+  let sessionData = await getResp.json();
+  let session = sessionData.result
+    ? JSON.parse(sessionData.result)
+    : sessionData.value
+      ? JSON.parse(sessionData.value)
+      : { users: [], votes: {}, votesRevealed: false };
 
-    const sessionKey = `session:${sessionId}`;
-    const getResp = await fetch(`${UPSTASH_REDIS_REST_URL}/get/${sessionKey}`, {
-      headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` },
-    });
-
-    const raw = await getResp.json();
-    let session;
-
-    try {
-      session = raw?.result ? JSON.parse(raw.result) : { users: [], votes: {}, votesRevealed: false };
-    } catch (err) {
-      session = { users: [], votes: {}, votesRevealed: false };
-    }
-
-    if (!session.users.includes(userName)) {
-      session.users.push(userName);
-    }
-
-    await fetch(`${UPSTASH_REDIS_REST_URL}/set/${sessionKey}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        value: JSON.stringify(session),
-        expiration: 86400,
-      }),
-    });
-
-    return new Response(JSON.stringify(session), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (err) {
-    return new Response(`Server error: ${err}`, { status: 500 });
+  // Convert legacy string users to object format if needed
+  if (Array.isArray(session.users) && typeof session.users[0] === "string") {
+    session.users = session.users.map(name => ({ name }));
   }
+
+  // Only add user if they don't exist already
+  if (!session.users.some(u => u.name === userName)) {
+    session.users.push({
+      name: userName,
+      isAdmin: session.users.length === 0, // First user is admin
+      vote: null
+    });
+  }
+
+  await fetch(`${UPSTASH_REDIS_REST_URL}/set/${sessionKey}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      value: JSON.stringify(session),
+      expiration: 86400,
+    }),
+  });
+
+  return new Response(JSON.stringify(session), {
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
