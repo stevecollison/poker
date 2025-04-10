@@ -1,8 +1,8 @@
-import { nanoid } from 'nanoid';
-
 export async function onRequestGet(context) {
   const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = context.env;
-  const sessionId = nanoid(6);
+
+  // ✅ Generate a simple random session ID (6-character alphanumeric)
+  const sessionId = Math.random().toString(36).substring(2, 8);
   const sessionKey = `session:${sessionId}`;
 
   const session = {
@@ -18,14 +18,14 @@ export async function onRequestGet(context) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      value: session, // ✅ Already a plain JS object
-      expiration: 86400,
-    }),
+      value: session,
+      expiration: 86400
+    })
   });
 
   return new Response(JSON.stringify({ sessionId }), {
     headers: {
-      'Content-Type': 'application/json',
-    },
+      'Content-Type': 'application/json'
+    }
   });
 }
