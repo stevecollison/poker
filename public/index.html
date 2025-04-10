@@ -238,9 +238,11 @@ if (votesRevealed) {
 
   const voteRows = document.getElementById('voteRows');
 
+  let voteRowsArray = [];
+
 sortedUsers.forEach(user => {
   const row = document.createElement('div');
-row.className = 'grid grid-cols-2 px-4 py-2 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300 ease-in-out opacity-0';
+  row.className = 'grid grid-cols-2 px-4 py-2 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300 ease-in-out opacity-0';
 
   const nameDiv = document.createElement('div');
   nameDiv.textContent = user.name;
@@ -252,9 +254,24 @@ row.className = 'grid grid-cols-2 px-4 py-2 border-b border-gray-200 dark:border
 
   row.appendChild(nameDiv);
   row.appendChild(voteDiv);
+
+  voteRowsArray.push({ row, vote: user.vote });
+});
+
+// Sort by vote only if votes are revealed and vote is numeric
+if (votesRevealed) {
+  voteRowsArray.sort((a, b) => {
+  const aVal = isNaN(a.vote) ? Infinity : Number(a.vote);
+  const bVal = isNaN(b.vote) ? Infinity : Number(b.vote);
+  return aVal - bVal;
+});
+}
+
+voteRowsArray.forEach(({ row }) => {
   requestAnimationFrame(() => row.classList.remove('opacity-0'));
   voteRows.appendChild(row);
 });
+
 
 
 
