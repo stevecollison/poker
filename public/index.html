@@ -6,7 +6,6 @@
   <title>Scrum Poker</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
   tailwind.config = {
@@ -113,7 +112,6 @@ document.getElementById('createSessionBtn')?.addEventListener('click', createSes
 document.getElementById('name').focus();
 
     
-    const socket = io();
     const fibonacci = [0, 1, 2, 3, 5, 8, 13, '?'];
 
     let sessionId = '';
@@ -129,21 +127,27 @@ document.getElementById('name').focus();
 
 
 
-
     function joinSession() {
-      sessionId = document.getElementById('sessionId').value.trim();
-      userName = document.getElementById('name').value.trim();
-      if (!sessionId || !userName) return alert('Enter session ID and name');
+  sessionId = document.getElementById('sessionId').value.trim();
+  userName = document.getElementById('name').value.trim();
+  if (!sessionId || !userName) return alert('Enter session ID and name');
 
-      socket.emit('join', { sessionId, name: userName });
+  fetch('/join', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId, userName }),
+    headers: { 'Content-Type': 'application/json' }
+  }).then(() => {
+    document.getElementById('setup').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+    document.getElementById('usernameDisplay').textContent = userName;
+    document.getElementById('sessionCodeDisplay').textContent = `Session ID: ${sessionId}`;
+    renderCards();
+  });
 
-      document.getElementById('setup').classList.add('hidden');
-      document.getElementById('game').classList.remove('hidden');
-      document.getElementById('usernameDisplay').textContent = userName;
-      document.getElementById('sessionCodeDisplay').textContent = `Session ID: ${sessionId}`;
+  setInterval(fetchSessionState, 1000);
 
-      renderCards();
-    }
+
+}
 
     function renderCards() {
   const container = document.getElementById('cards');
@@ -152,213 +156,97 @@ document.getElementById('name').focus();
     const card = document.createElement('div');
     card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200';    card.textContent = value;
     card.onclick = () => {
-      if (votesRevealed) return;
+  if (votesRevealed) return;
 
-      document.querySelectorAll('.card').forEach(c => {
-        c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
-      });
-      card.classList.add('bg-blue-300', 'dark:bg-blue-700');
-      socket.emit('vote', value);
-    };
+  document.querySelectorAll('.card').forEach(c => {
+    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+  });
+  card.classList.add('bg-blue-300', 'dark:bg-blue-700');
+
+  fetch('/vote', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId, userName, vote: value }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
     container.appendChild(card);
   });
 }
 
 
-    function revealVotes() {
-      socket.emit('reveal');
-    }
+function fetchSessionState() {
+  fetch('/reveal', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId }),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(session => {
+    renderSessionState(session);
+  })
+  .catch(err => console.error("Failed to fetch session state:", err));
+}
 
-    function clearVotes() {
-      socket.emit('clear');
-    }
-    socket.on('state', ({ users, votesRevealed: revealed }) => {
+
+
+function revealVotes() {
+  fetch('/reveal', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+function clearVotes() {
+  fetch('/clear', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+function renderSessionState({ users, votesRevealed: revealed }) {
   const voteList = document.getElementById('voteList');
   voteList.innerHTML = `
-  <div class="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-800 w-full">
-    <div class="grid grid-cols-1 border-b px-4 py-2 font-semibold text-left text-gray-800 dark:text-gray-100">
-      <div>Name</div>
-      <div class="text-right">Vote</div>
+    <div class="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-800 w-full">
+      <div class="grid grid-cols-1 border-b px-4 py-2 font-semibold text-left text-gray-800 dark:text-gray-100">
+        <div>Name</div>
+        <div class="text-right">Vote</div>
+      </div>
+      <div id="voteRows"></div>
     </div>
-    <div id="voteRows"></div>
-  </div>
-`;
+  `;
 
-votesRevealed = revealed;
+  votesRevealed = revealed;
 
-let sortedUsers = Object.values(users);
-const currentUser = sortedUsers.find(u => u.name === userName);
-isAdmin = currentUser?.isAdmin || false;
-
-
-
-
-  // ✅ Check if all non-admins have voted
-  const nonAdmins = sortedUsers.filter(u => !u.isAdmin);
-const everyoneVoted = nonAdmins.length > 0 && nonAdmins.every(u => u.vote !== null && u.vote !== undefined);
-
-// Only trigger the bell once per round when everyone finishes voting
-if (everyoneVoted && !votesRevealed && !window._notifiedOnce) {
-  window._notifiedOnce = true;
-
-  const notification = document.getElementById('notification');
-  notification.classList.add('opacity-100', 'scale-100');
-  notification.classList.remove('scale-95');
-
-  new AudioContext().resume().then(() => {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = ctx.createOscillator();
-    oscillator.type = "square";
-    oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
-    oscillator.connect(ctx.destination);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.1);
-  });
-
-  setTimeout(() => {
-    notification.classList.remove('opacity-100', 'scale-100');
-    notification.classList.add('scale-95');
-  }, 4000);
-}
-
-
-
-// Reset bell flag after a reveal or clear
-if (votesRevealed) {
-  window._notifiedOnce = false;
-}
-
-
-
-  // ... continue your existing sorting and rendering logic
-
-  voteList.className = 'grid grid-cols-1 gap-x-4 gap-y-2 justify-start max-w-md mx-auto';
-
-
+  let sortedUsers = Object.values(users);
+  const currentUser = sortedUsers.find(u => u.name === userName);
+  isAdmin = currentUser?.isAdmin || false;
 
   const voteRows = document.getElementById('voteRows');
+voteRows.innerHTML = '';
 
-  let voteRowsArray = [];
-
-sortedUsers.forEach(user => {
-  const row = document.createElement('div');
-  row.className = 'grid grid-cols-2 px-4 py-2 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300 ease-in-out opacity-0';
-
-  const nameDiv = document.createElement('div');
-  nameDiv.textContent = user.name;
-  nameDiv.className = 'text-left truncate';
-
-  const voteDiv = document.createElement('div');
-  voteDiv.textContent = votesRevealed ? (user.vote ?? ' - ') : (user.vote !== null ? '✔️' : '…');
-  voteDiv.className = 'text-right';
-
-  row.appendChild(nameDiv);
-  row.appendChild(voteDiv);
-
-  voteRowsArray.push({ row, vote: user.vote });
+users.forEach(user => {
+  const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '';
+  const div = document.createElement('div');
+  div.className = 'grid grid-cols-2 border-t px-4 py-2';
+  div.innerHTML = `
+    <div>${user.name}</div>
+    <div class="text-right">${vote}</div>
+  `;
+  voteRows.appendChild(div);
 });
 
-// Sort by vote only if votes are revealed and vote is numeric
-if (votesRevealed) {
-  voteRowsArray.sort((a, b) => {
-  const aVal = isNaN(a.vote) ? Infinity : Number(a.vote);
-  const bVal = isNaN(b.vote) ? Infinity : Number(b.vote);
-  return aVal - bVal;
-});
-}
-
-voteRowsArray.forEach(({ row }) => {
-  requestAnimationFrame(() => row.classList.remove('opacity-0'));
-  voteRows.appendChild(row);
-});
-
-
-
-
-if (votesRevealed) {
-  const numericalVotes = sortedUsers
-    .map(u => u.vote)
-    .filter(v => !isNaN(v) && v !== null)
-    .map(Number);
-
-  if (numericalVotes.length > 0) {
-    const mean = (numericalVotes.reduce((a, b) => a + b, 0) / numericalVotes.length).toFixed(2);
-
-    const median = (() => {
-      const sorted = [...numericalVotes].sort((a, b) => a - b);
-      const mid = Math.floor(sorted.length / 2);
-      return sorted.length % 2 === 0
-        ? ((sorted[mid - 1] + sorted[mid]) / 2).toFixed(2)
-        : sorted[mid].toFixed(2);
-    })();
-
-    const mode = (() => {
-      const freq = {};
-      let maxFreq = 0;
-      let modeVal = null;
-      for (const val of numericalVotes) {
-        freq[val] = (freq[val] || 0) + 1;
-        if (freq[val] > maxFreq) {
-          maxFreq = freq[val];
-          modeVal = val;
-        }
-      }
-      return modeVal;
-    })();
-
-    const statsDiv = document.createElement('div');
-    statsDiv.className = 'text-sm mt-6 text-center col-span-full text-gray-700 dark:text-gray-300';
-    statsDiv.innerHTML = `<strong>Mean:</strong> ${mean} &nbsp; 
-                          <strong>Median:</strong> ${median} &nbsp; 
-                          <strong>Mode:</strong> ${mode}`;
-    voteList.appendChild(statsDiv);
-  }
 }
 
 
-      document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
-    });
-    socket.on('clear', () => {
-  // Deselect any highlighted card
-  document.querySelectorAll('.card').forEach(c => {
-    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
-  });
-
-  // ✅ Reset the bell so it can beep next time
-  window._notifiedOnce = false;
-});
-
-
-    socket.on('error', msg => alert(msg));
 
 window.createSession = createSession;
 window.joinSession = joinSession;
 window.revealVotes = revealVotes;
 window.clearVotes = clearVotes;
 window.toggleDarkMode = toggleDarkMode;
-socket.on('everyoneVoted', () => {
-  if (window._notifiedOnce) return;
-  window._notifiedOnce = true;
 
-  const notification = document.getElementById('notification');
-  notification.classList.add('opacity-100', 'scale-100');
-  notification.classList.remove('scale-95');
-
-  new AudioContext().resume().then(() => {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = ctx.createOscillator();
-    oscillator.type = "square";
-    oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
-    oscillator.connect(ctx.destination);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.1);
-  });
-
-  setTimeout(() => {
-    notification.classList.remove('opacity-100', 'scale-100');
-    notification.classList.add('scale-95');
-  }, 4000);
-});
   </script>
 </body>
 </html>
