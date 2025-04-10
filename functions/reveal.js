@@ -2,23 +2,28 @@ export async function onRequestPost(context) {
     const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = context.env;
     const body = await context.request.json();
     const { sessionId } = body;
+  
     const sessionKey = `session:${sessionId}`;
   
+    // Fetch current session data
     const getResp = await fetch(`${UPSTASH_REDIS_REST_URL}/get/${sessionKey}`, {
-      headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` },
+      headers: {
+        Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
+      },
     });
   
-    const json = await getResp.json();
-    let session;
+    const raw = await getResp.json();
   
+    let session;
     try {
-      session = JSON.parse(json.result || json.value); // Parse once
+      session = raw.result
+        ? JSON.parse(raw.result)
+        : raw.value
+          ? JSON.parse(raw.value)
+          : null;
     } catch (e) {
-      console.error("Error parsing session:", e);
-      return new Response(JSON.stringify({ error: 'Corrupted session data' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      console.error("Failed to parse session:", e);
+      session = null;
     }
   
     if (!session) {
@@ -28,8 +33,10 @@ export async function onRequestPost(context) {
       });
     }
   
+    // Update session state
     session.votesRevealed = true;
   
+    // Save back to Upstash
     await fetch(`${UPSTASH_REDIS_REST_URL}/set/${sessionKey}`, {
       method: 'POST',
       headers: {
@@ -37,11 +44,12 @@ export async function onRequestPost(context) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        value: session,
+        value: JSON.stringify(session),
         expiration: 86400,
       }),
     });
   
+    // Return updated session
     return new Response(JSON.stringify(session), {
       headers: { 'Content-Type': 'application/json' },
     });
