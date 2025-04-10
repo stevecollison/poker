@@ -1,8 +1,11 @@
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();
-
 export async function onRequestPost(context) {
+  const redis = new Redis({
+    url: context.env.UPSTASH_REDIS_REST_URL,
+    token: context.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
   const { sessionId, userName, vote } = await context.request.json();
   const key = `session:${sessionId}`;
   const raw = await redis.get(key);

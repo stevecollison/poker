@@ -1,8 +1,11 @@
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();
-
 export async function onRequestPost(context) {
+  const redis = new Redis({
+    url: context.env.UPSTASH_REDIS_REST_URL,
+    token: context.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
   const { sessionId } = await context.request.json();
   const key = `session:${sessionId}`;
   const raw = await redis.get(key);
@@ -11,7 +14,7 @@ export async function onRequestPost(context) {
     return new Response("Session not found", { status: 404 });
   }
 
-  const session = JSON.parse(raw); // ✅ only one parse
+  const session = JSON.parse(raw);
 
   if (!session.votesRevealed) {
     session.votesRevealed = true;
@@ -19,6 +22,6 @@ export async function onRequestPost(context) {
   }
 
   return new Response(JSON.stringify(session), {
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
   });
 }

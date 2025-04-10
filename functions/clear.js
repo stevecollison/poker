@@ -1,8 +1,11 @@
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();
-
 export async function onRequestPost(context) {
+  const redis = new Redis({
+    url: context.env.UPSTASH_REDIS_REST_URL,
+    token: context.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
   const { sessionId } = await context.request.json();
   const key = `session:${sessionId}`;
   const raw = await redis.get(key);
@@ -15,7 +18,6 @@ export async function onRequestPost(context) {
   for (const user of Object.values(session.users)) {
     user.vote = null;
   }
-
   session.votesRevealed = false;
 
   await redis.set(key, JSON.stringify(session));

@@ -1,19 +1,23 @@
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();
-
 export async function onRequestPost(context) {
+  const redis = new Redis({
+    url: context.env.UPSTASH_REDIS_REST_URL,
+    token: context.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
   const { sessionId, userName } = await context.request.json();
   const key = `session:${sessionId}`;
-  let session = await redis.get(key);
+  const raw = await redis.get(key);
 
-  if (session) {
-    session = JSON.parse(session); // 🔥 just once
+  let session;
+  if (raw) {
+    session = JSON.parse(raw);
   } else {
     session = {
       users: {},
       votes: {},
-      votesRevealed: false
+      votesRevealed: false,
     };
   }
 
@@ -23,7 +27,7 @@ export async function onRequestPost(context) {
     session.users[userName].isAdmin = true;
   }
 
-  await redis.set(key, JSON.stringify(session)); // ✅ one-layer serialization
+  await redis.set(key, JSON.stringify(session));
 
   return new Response(null, { status: 200 });
 }
