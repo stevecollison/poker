@@ -209,8 +209,11 @@ function revealVotes() {
     method: 'POST',
     body: JSON.stringify({ sessionId }),
     headers: { 'Content-Type': 'application/json' }
+  }).then(() => {
+    fetchSessionState(); // 👈 Refresh state immediately
   });
 }
+
 
 function clearVotes() {
   fetch('/clear', {
