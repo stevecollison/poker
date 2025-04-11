@@ -1,31 +1,40 @@
-import { Redis } from "@upstash/redis";
-import { nanoid } from "nanoid/non-secure";
+import { customAlphabet } from 'nanoid';
 
-export async function onRequestGet(context) {
+export async function onRequest({ request, env }) {
   try {
-    console.log("🔍 ENV", context.env);
+    const redisUrl = env.UPSTASH_REDIS_REST_URL;
+    const redisToken = env.UPSTASH_REDIS_REST_TOKEN;
 
-    const redis = new Redis({
-      url: context.env.UPSTASH_REDIS_REST_URL,
-      token: context.env.UPSTASH_REDIS_REST_TOKEN,
-    });
+    const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8);
+    const sessionId = nanoid();
 
-    const sessionId = nanoid(6);
     const session = {
-      users: {},
+      users: [],
       votes: {},
-      votesRevealed: false,
+      revealed: false,
     };
 
-    await redis.set(`session:${sessionId}`, JSON.stringify(session));
+    const response = await fetch(`${redisUrl}/set/${sessionId}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${redisToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        value: session,
+        expiration: 86400, // 1 day
+      }),
+    });
 
-    console.log("✅ Session created:", sessionId);
+    if (!response.ok) {
+      throw new Error(`Upstash error: ${response.status} ${await response.text()}`);
+    }
 
     return new Response(JSON.stringify({ sessionId }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error("🔥 Error creating session:", err);
-    return new Response("Internal Server Error", { status: 500 });
+    console.error('🔥 Error creating session:', err);
+    return new Response('Internal Server Error', { status: 500 });
   }
 }
