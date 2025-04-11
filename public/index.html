@@ -234,7 +234,7 @@ function renderSessionState(session) {
   `;
 
   isAdmin = false;
-  const currentUser = users.find(u => u.name === userName);
+  const currentUser = users.find(u => u.name.toLowerCase() === userName.toLowerCase());
   if (currentUser?.isAdmin) isAdmin = true;
 
   const voteRows = document.getElementById('voteRows');
