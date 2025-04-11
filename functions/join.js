@@ -1,14 +1,10 @@
-import { getSessionClient, saveSession } from './lib/session.js';
-
+import { getSession, saveSession } from './lib/session.js';
 
 export async function onRequestPost(context) {
-  const redis = getSessionClient(context.env);
-
-  // Parse the request body
   const { sessionId, userName } = await context.request.json();
 
-  // Fetch existing session
-  const session = await redis.get(`session:${sessionId}`);
+  // Fetch existing session or fallback
+  const session = await getSession(context.env, sessionId);
 
   if (!session) {
     return new Response('Session not found', { status: 404 });
@@ -21,10 +17,9 @@ export async function onRequestPost(context) {
   session.users[userName] = {
     name: userName,
     vote: null,
-    isAdmin: isFirstUser // ✅ admin flag correctly added
+    isAdmin: isFirstUser
   };
 
-  // Save session back to Redis
   await saveSession(context.env, sessionId, session);
 
   return new Response(JSON.stringify({ success: true }), {
