@@ -234,8 +234,8 @@ function renderSessionState(session) {
 
   console.log("Session state received:", session);
 
-  const { users, votesRevealed: revealed } = session;
-  votesRevealed = revealed;
+  const { users } = session;
+  votesRevealed = true; // 👈 Force reveal for testing
 
   const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName.toLowerCase());
 
