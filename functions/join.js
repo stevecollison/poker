@@ -1,33 +1,49 @@
-import { Redis } from "@upstash/redis";
+export async function onRequest({ request, env }) {
+  try {
+    const { sessionId, userName } = await request.json();
+    const redisUrl = env.UPSTASH_REDIS_REST_URL;
+    const redisToken = env.UPSTASH_REDIS_REST_TOKEN;
 
-export async function onRequestPost(context) {
-  const redis = new Redis({
-    url: context.env.UPSTASH_REDIS_REST_URL,
-    token: context.env.UPSTASH_REDIS_REST_TOKEN,
-  });
+    // Get the session
+    const res = await fetch(`${redisUrl}/get/${sessionId}`, {
+      headers: {
+        Authorization: `Bearer ${redisToken}`,
+      },
+    });
 
-  const { sessionId, userName } = await context.request.json();
-  const key = `session:${sessionId}`;
-  const raw = await redis.get(key);
+    const data = await res.json();
+    if (!data.result) throw new Error('Session not found');
 
-  let session;
-  if (raw) {
-    session = JSON.parse(raw);
-  } else {
-    session = {
-      users: {},
-      votes: {},
-      votesRevealed: false,
-    };
+    const session = JSON.parse(data.result);
+
+    // Ensure users list exists
+    session.users = session.users || [];
+
+    // Add the user if not already in the session
+    if (!session.users.find(u => u.name === userName)) {
+      const isAdmin = session.users.length === 0;
+      session.users.push({ name: userName, vote: null, isAdmin });
+    }
+
+    // Save updated session back to Redis
+    await fetch(`${redisUrl}/set/${sessionId}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${redisToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        value: session,
+        expiration: 86400,
+      }),
+    });
+
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  } catch (err) {
+    console.error('🔥 Error in /join:', err);
+    return new Response('Internal Server Error', { status: 500 });
   }
-
-  session.users[userName] = { name: userName, vote: null };
-
-  if (Object.keys(session.users).length === 1) {
-    session.users[userName].isAdmin = true;
-  }
-
-  await redis.set(key, JSON.stringify(session));
-
-  return new Response(null, { status: 200 });
 }
