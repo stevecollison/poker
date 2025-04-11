@@ -233,15 +233,15 @@ function renderSessionState(session) {
   const { users, votesRevealed: revealed } = session;
   votesRevealed = revealed;
 
-  const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName);
+  const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName.toLowerCase());
 
-  if (currentUser?.isAdmin) {
-    isAdmin = true;
-    document.getElementById('adminControls').classList.remove('hidden');
-  } else {
-    isAdmin = false;
-    document.getElementById('adminControls').classList.add('hidden');
-  }
+if (currentUser?.isAdmin) {
+  isAdmin = true;
+  document.getElementById('adminControls').classList.remove('hidden');
+} else {
+  isAdmin = false;
+  document.getElementById('adminControls').classList.add('hidden');
+}
 
   const voteList = document.getElementById('voteList');
   voteList.innerHTML = ''; // Reset whole block
