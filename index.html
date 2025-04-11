@@ -224,7 +224,7 @@ function renderSessionState(session) {
   const { users, votesRevealed: revealed } = session;
   votesRevealed = revealed;
 
-  const currentUser = users.find(u => u.name.toLowerCase() === userName);
+  const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName);
 
   if (currentUser?.isAdmin) {
     isAdmin = true;
@@ -248,7 +248,7 @@ function renderSessionState(session) {
   const voteRows = document.getElementById('voteRows');
   voteRows.innerHTML = '';
 
-  users.forEach(user => {
+  Object.values(users).forEach(user => {
     const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '';
     const div = document.createElement('div');
     div.className = 'grid grid-cols-2 border-t px-4 py-2';
