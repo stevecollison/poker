@@ -209,15 +209,18 @@ function clearVotes() {
 }
 
 function renderSessionState(session) {
-  console.log("Session state received:", session);  // Debug log
-  // Check if session is valid and has the expected 'users' property.
+  while (session?.value) session = session.value;
+
+  console.log("Session state received:", session);
+
   if (!session || !session.users) {
     console.warn("Session state is invalid:", session);
     return;
   }
-  
+
   const { users, votesRevealed: revealed } = session;
-  
+  votesRevealed = revealed;
+
   const voteList = document.getElementById('voteList');
   voteList.innerHTML = `
     <div class="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-800 w-full">
@@ -228,17 +231,15 @@ function renderSessionState(session) {
       <div id="voteRows"></div>
     </div>
   `;
-  
-  votesRevealed = revealed;
-  
-  let sortedUsers = Object.values(users);
-  const currentUser = sortedUsers.find(u => u.name === userName);
-  isAdmin = currentUser?.isAdmin || false;
-  
+
+  isAdmin = false;
+  const currentUser = users.find(u => u.name === userName);
+  if (currentUser?.isAdmin) isAdmin = true;
+
   const voteRows = document.getElementById('voteRows');
   voteRows.innerHTML = '';
-  
-  sortedUsers.forEach(user => {
+
+  users.forEach(user => {
     const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '';
     const div = document.createElement('div');
     div.className = 'grid grid-cols-2 border-t px-4 py-2';
@@ -249,6 +250,8 @@ function renderSessionState(session) {
     voteRows.appendChild(div);
   });
 }
+
+
 
 
 
