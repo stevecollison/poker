@@ -1,4 +1,4 @@
-import { getSession } from './lib/session';
+import { getSession, saveSession } from './lib/session.js';
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);

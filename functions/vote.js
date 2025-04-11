@@ -1,4 +1,5 @@
-import { getSession, saveSession } from './lib/session';
+import { getSession, saveSession } from './lib/session.js';
+
 
 export async function onRequestPost({ request, env }) {
   const { sessionId, userName, vote } = await request.json();
