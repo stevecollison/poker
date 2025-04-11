@@ -242,7 +242,7 @@ if (currentUser?.isAdmin) {
 
 
   isAdmin = false;
-  const currentUser = users.find(u => u.name === userName);
+  currentUser = users.find(u => u.name === userName);
   if (currentUser?.isAdmin) isAdmin = true;
 
   const voteRows = document.getElementById('voteRows');
