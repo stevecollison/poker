@@ -1,4 +1,5 @@
-import { getSessionClient, saveSession } from '../lib/session.js';
+import { getSessionClient, saveSession } from './lib/session.js';
+
 
 export async function onRequestPost(context) {
   const redis = getSessionClient(context.env);
