@@ -13,7 +13,7 @@ export async function getSession(sessionId, env) {
   return result || { users: [], value: null, revealed: false };
 }
 
-export async function saveSession(sessionId, session, env) {
-  const redis = getSessionClient(env);
-  await redis.set(sessionId, session, { ex: 86400 });
-}
+export async function saveSession(env, sessionId, session) {
+    const redis = getSessionClient(env);
+    await redis.set(`session:${sessionId}`, session, { ex: 86400 });
+  }
