@@ -226,6 +226,7 @@ function clearVotes() {
 }
 
 function renderSessionState(session) {
+  console.log("votesRevealed:", votesRevealed);
   if (!session || !session.users) {
     console.warn("Session state is invalid:", session);
     return;
