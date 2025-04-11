@@ -14,6 +14,7 @@ export async function getSession(env, sessionId) {
 }
 
 export async function saveSession(env, sessionId, session) {
-  const redis = getSessionClient(env);
-  await redis.set(`session:${sessionId}`, session, { ex: 86400 });
-}
+    const redis = getSessionClient(env);
+    await redis.set(`session:${sessionId}`, JSON.stringify(session), { ex: 86400 });
+  }
+  
