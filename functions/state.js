@@ -1,4 +1,4 @@
-import { getSession, saveSession } from '../lib/session';
+import { getSession, saveSession } from './lib/session.js';
 
 export async function onRequestGet({ request, env }) {
     try {

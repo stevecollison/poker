@@ -1,3 +1,4 @@
+import { getSession, saveSession } from './lib/session.js';
 export async function onRequest({ request, env }) {
     try {
       const { sessionId } = await request.json();
