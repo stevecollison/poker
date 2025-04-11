@@ -189,14 +189,12 @@ function startPolling() {
 
 
 function fetchSessionState() {
-  console.log("🔁 Fetching session state for:", sessionId);
   fetch(`/state?sessionId=${sessionId}`)
     .then(res => {
       if (!res.ok) throw new Error('Failed to fetch session state.');
       return res.json();
     })
     .then(session => {
-      console.log("🔍 Full session from server:", session); // 👈 Add this
       renderSessionState(session);
     })
     .catch(err => {
@@ -228,17 +226,13 @@ function clearVotes() {
 }
 
 function renderSessionState(session) {
-  console.log("votesRevealed:", votesRevealed);
   if (!session || !session.users) {
     console.warn("Session state is invalid:", session);
     return;
   }
 
-  console.log("Session state received:", session);
-
   const { users, revealed } = session; // 👈 use 'revealed' directly
   votesRevealed = revealed ?? false;
-  console.log("revealed from server:", revealed);
 console.log("votesRevealed (assigned):", votesRevealed);
 
 
