@@ -217,6 +217,8 @@ function clearVotes() {
     method: 'POST',
     body: JSON.stringify({ sessionId }),
     headers: { 'Content-Type': 'application/json' }
+  }).then(() => {
+    window._notifiedOnce = false; // ✅ Reset for next round
   });
 }
 
@@ -261,6 +263,27 @@ function renderSessionState(session) {
   });
 
   voteList.appendChild(wrapper);
+
+// Check if all non-admin users have voted
+if (!window._notifiedOnce && !votesRevealed) {
+  const nonAdminUsers = Object.values(users).filter(u => !u.isAdmin);
+  const allVoted = nonAdminUsers.every(u => u.vote !== undefined && u.vote !== null);
+
+  if (nonAdminUsers.length > 0 && allVoted) {
+    const notification = document.getElementById('notification');
+    notification.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+    notification.classList.add('opacity-100', 'scale-100');
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+      notification.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+    }, 3000);
+
+    window._notifiedOnce = true;
+  }
+}
+
+
 
 }
 
