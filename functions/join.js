@@ -1,6 +1,7 @@
 export async function onRequest({ request, env }) {
   try {
-    const { sessionId, userName } = await request.json();
+    let { sessionId, userName } = await request.json();
+    userName = userName.trim().toLowerCase();
     const redisUrl = env.UPSTASH_REDIS_REST_URL;
     const redisToken = env.UPSTASH_REDIS_REST_TOKEN;
 
