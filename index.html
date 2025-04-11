@@ -236,8 +236,10 @@ function renderSessionState(session) {
 
   console.log("Session state received:", session);
 
-  const { users, votesRevealed: revealed } = session;
-votesRevealed = revealed ?? false;
+  const { users, revealed } = session; // 👈 use 'revealed' directly
+  votesRevealed = revealed ?? false;
+  console.log("revealed from server:", revealed);
+console.log("votesRevealed (assigned):", votesRevealed);
 
 
   const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName.toLowerCase());
