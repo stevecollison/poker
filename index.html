@@ -196,6 +196,7 @@ function fetchSessionState() {
       return res.json();
     })
     .then(session => {
+      console.log("🔍 Full session from server:", session); // 👈 Add this
       renderSessionState(session);
     })
     .catch(err => {
