@@ -1,20 +1,18 @@
-import { Redis } from '@upstash/redis/cloudflare';
+import { getSession, saveSession } from './lib/session';
 
-export function getSessionClient(env) {
-  return new Redis({
-    url: env.UPSTASH_REDIS_REST_URL,
-    token: env.UPSTASH_REDIS_REST_TOKEN,
+export async function onRequestPost({ request, env }) {
+  const { sessionId, userName } = await request.json();
+  const session = await getSession(env, sessionId); // ✅ use env
+
+  session.users[userName] = {
+    name: userName,
+    vote: null,
+    isAdmin: Object.keys(session.users).length === 0,
+  };
+
+  await saveSession(env, sessionId, session); // ✅ use env
+
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: { 'Content-Type': 'application/json' }
   });
 }
-
-export async function getSession(env, sessionId) {
-  const redis = getSessionClient(env);
-  const result = await redis.get(`session:${sessionId}`);
-  return result || { users: {}, votes: {}, revealed: false };
-}
-
-export async function saveSession(env, sessionId, session) {
-    const redis = getSessionClient(env);
-    await redis.set(`session:${sessionId}`, JSON.stringify(session), { ex: 86400 });
-  }
-  

@@ -1,28 +1,20 @@
-import { getSessionClient, saveSession } from './lib/session.js';
+import { getSession, saveSession } from './lib/session';
 
-export async function onRequestPost(context) {
-  const redis = getSessionClient(context.env);
-  const { sessionId, userName } = await context.request.json();
+export async function onRequestPost({ request }) {
+  const { sessionId, userName } = await request.json();
 
-  const sessionRaw = await redis.get(`session:${sessionId}`);
-  if (!sessionRaw) {
-    return new Response('Session not found', { status: 404 });
-  }
+  const session = getSession(sessionId);
 
-  const session = typeof sessionRaw === 'string' ? JSON.parse(sessionRaw) : sessionRaw;
-
-  const isFirstUser = Object.keys(session.users || {}).length === 0;
-
-  session.users = session.users || {};
+  // Create user entry
   session.users[userName] = {
     name: userName,
     vote: null,
-    isAdmin: isFirstUser,
+    isAdmin: Object.keys(session.users).length === 0
   };
 
-  await saveSession(context.env, sessionId, session);
+  saveSession(sessionId, session); // ✅ Persist the session update
 
-  return new Response(JSON.stringify({ success: true }), {
+  return new Response(JSON.stringify({ ok: true }), {
     headers: { 'Content-Type': 'application/json' }
   });
 }
