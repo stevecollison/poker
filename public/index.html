@@ -127,7 +127,6 @@ document.getElementById('name').focus();
 
 
 
-
     function joinSession() {
   sessionId = document.getElementById('sessionId').value.trim();
   userName = document.getElementById('name').value.trim().toLowerCase();
@@ -142,15 +141,16 @@ document.getElementById('name').focus();
     document.getElementById('game').classList.remove('hidden');
     document.getElementById('usernameDisplay').textContent = userName;
     document.getElementById('sessionCodeDisplay').textContent = `Session ID: ${sessionId}`;
+    
     renderCards();
+    **fetchSessionState(); // 👈 this line ensures vote grid updates immediately**
   });
 
   if (!window.fetchInterval) {
-  window.fetchInterval = setInterval(fetchSessionState, 1000);
+    window.fetchInterval = setInterval(fetchSessionState, 1000);
+  }
 }
 
-
-}
 
     function renderCards() {
   const container = document.getElementById('cards');
@@ -224,17 +224,18 @@ function renderSessionState(session) {
 
   const voteList = document.getElementById('voteList');
   voteList.innerHTML = `
-    <div class="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-800 w-full">
-      <div class="grid grid-cols-1 border-b px-4 py-2 font-semibold text-left text-gray-800 dark:text-gray-100">
-        <div>Name</div>
-        <div class="text-right">Vote</div>
-      </div>
-      <div id="voteRows"></div>
+  <div class="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-800 w-full">
+    <div class="grid grid-cols-2 border-b px-4 py-2 font-semibold text-left text-gray-800 dark:text-gray-100">
+      <div>Name</div>
+      <div class="text-right">Vote</div>
     </div>
-  `;
+    <div id="voteRows"></div>
+  </div>
+`;
+
 
   isAdmin = false;
-  const currentUser = users.find(u => u.name.toLowerCase() === userName.toLowerCase());
+  const currentUser = users.find(u => u.name === userName);
   if (currentUser?.isAdmin) isAdmin = true;
 
   const voteRows = document.getElementById('voteRows');
