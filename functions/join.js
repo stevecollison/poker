@@ -1,5 +1,3 @@
-import { getSession, saveSession } from './lib/session';
-
 export async function onRequestPost(context) {
   const { sessionId, userName } = await context.request.json();
 
