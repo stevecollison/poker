@@ -143,7 +143,7 @@ document.getElementById('name').focus();
     document.getElementById('sessionCodeDisplay').textContent = `Session ID: ${sessionId}`;
     
     renderCards();
-    **fetchSessionState(); // 👈 this line ensures vote grid updates immediately**
+    fetchSessionState(); // this line ensures vote grid updates immediately
   });
 
   if (!window.fetchInterval) {
