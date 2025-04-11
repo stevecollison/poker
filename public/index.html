@@ -178,16 +178,17 @@ document.getElementById('name').focus();
 
 
 function fetchSessionState() {
-  fetch('/reveal', {
-    method: 'POST',
-    body: JSON.stringify({ sessionId }),
-    headers: { 'Content-Type': 'application/json' }
-  })
-  .then(res => res.json())
-  .then(session => {
-    renderSessionState(session);
-  })
-  .catch(err => console.error("Failed to fetch session state:", err));
+  fetch(`/state?sessionId=${sessionId}`)
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to fetch session state.');
+      return res.json();
+    })
+    .then(session => {
+      renderSessionState(session);
+    })
+    .catch(err => {
+      console.error("Failed to fetch session state:", err);
+    });
 }
 
 
