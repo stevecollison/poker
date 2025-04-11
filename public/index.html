@@ -128,8 +128,9 @@ document.getElementById('name').focus();
 
 
     function joinSession() {
-  const sessionId = document.getElementById('sessionId').value.trim();
-  const userName = document.getElementById('name').value.trim().toLowerCase();
+  sessionId = document.getElementById('sessionId').value.trim();
+  userName = document.getElementById('name').value.trim().toLowerCase();
+
 
   if (!sessionId || !userName) return alert('Enter session ID and name');
 
@@ -210,6 +211,13 @@ function clearVotes() {
 
 function renderSessionState(session) {
   while (session?.value) session = session.value;
+  const currentUser = session.users?.find(u => u.name === userName);
+if (currentUser?.isAdmin) {
+  document.getElementById('adminControls').classList.remove('hidden');
+} else {
+  document.getElementById('adminControls').classList.add('hidden');
+}
+
 
   console.log("Session state received:", session);
 
