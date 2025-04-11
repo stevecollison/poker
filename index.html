@@ -132,7 +132,7 @@ document.getElementById('name').focus();
 
     function joinSession() {
   sessionId = document.getElementById('sessionId').value.trim();
-  userName = document.getElementById('name').value.trim().toLowerCase();
+  userName = document.getElementById('name').value.trim();
 
 
   if (!sessionId || !userName) return alert('Enter session ID and name');

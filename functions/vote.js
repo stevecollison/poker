@@ -1,23 +1,29 @@
-import { getSession, saveSession } from './lib/session.js';
+import { getSessionClient, saveSession } from './lib/session.js';
 
 export async function onRequestPost({ request, env }) {
   try {
     let { sessionId, userName, vote } = await request.json();
-    userName = userName.trim().toLowerCase();
+    userName = userName.trim(); // ✅ Preserve casing
 
-    const session = await getSession(env, sessionId);
+    const redis = getSessionClient(env);
+    const session = await redis.get(`session:${sessionId}`);
 
     if (!session) {
       return new Response("Session not found", { status: 404 });
     }
 
+    // ✅ Ensure users is an object (not array)
     session.users = session.users || {};
 
-    if (!session.users[userName]) {
+    const user = Object.values(session.users).find(
+      u => u.name.toLowerCase() === userName.toLowerCase()
+    );
+
+    if (!user) {
       return new Response("User not in session", { status: 400 });
     }
 
-    session.users[userName].vote = vote;
+    user.vote = vote;
 
     await saveSession(env, sessionId, session);
 
