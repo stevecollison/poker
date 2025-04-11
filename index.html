@@ -153,10 +153,18 @@ document.getElementById('name').focus();
   });
 }
 
-function startPolling() {
+function startPolling(interval = 1000) {
   if (window.fetchInterval) clearInterval(window.fetchInterval);
-  window.fetchInterval = setInterval(fetchSessionState, 2000); // poll every 2s
+  window.fetchInterval = setInterval(fetchSessionState, interval);
 }
+function stopPolling() {
+  if (window.fetchInterval) {
+    clearInterval(window.fetchInterval);
+    window.fetchInterval = null;
+  }
+}
+
+
 
 
 
@@ -178,11 +186,12 @@ function startPolling() {
   card.classList.add('bg-blue-300', 'dark:bg-blue-700');
 
   fetch('/vote', {
-    method: 'POST',
-    body: JSON.stringify({ sessionId, userName, vote: value }),
-    headers: { 'Content-Type': 'application/json' }
-  });
-};
+  method: 'POST',
+  body: JSON.stringify({ sessionId, userName, vote: value }),
+  headers: { 'Content-Type': 'application/json' }
+}).then(() => {
+  fetchSessionState(); // 👈 Instant update
+});
     container.appendChild(card);
   });
 }
@@ -221,9 +230,12 @@ function clearVotes() {
     body: JSON.stringify({ sessionId }),
     headers: { 'Content-Type': 'application/json' }
   }).then(() => {
-    window._notifiedOnce = false; // ✅ Reset for next round
+    window._notifiedOnce = false;
+    stopPolling();         // 🛑 pause first
+    startPolling(1000);    // ✅ restart polling at 1s for new round
   });
 }
+
 
 function renderSessionState(session) {
   if (!session || !session.users) {
@@ -233,7 +245,11 @@ function renderSessionState(session) {
 
   const { users, revealed } = session; // 👈 use 'revealed' directly
   votesRevealed = revealed ?? false;
-console.log("votesRevealed (assigned):", votesRevealed);
+
+  if (votesRevealed) {
+  stopPolling();
+  startPolling(3000); // slower polling after round ends
+}
 
 
   const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName.toLowerCase());
