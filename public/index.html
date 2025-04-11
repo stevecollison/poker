@@ -77,6 +77,23 @@
 
 
   <script>
+  window.addEventListener('DOMContentLoaded', () => {
+  const urlParts = window.location.pathname.split('/');
+  const maybeSessionId = urlParts[1];
+  if (maybeSessionId && maybeSessionId.length >= 6) {
+    sessionId = maybeSessionId; // ✅ Assign to global
+    const sessionInput = document.getElementById('sessionId');
+    const createBtn = document.getElementById('createSessionBtn');
+
+    sessionInput.value = sessionId;
+    sessionInput.style.display = 'none';
+    if (createBtn) createBtn.style.display = 'none';
+  }
+});
+
+    let sessionId = '';
+    let userName = '';
+
   
 
     function createSession() {
@@ -94,28 +111,14 @@
     });
 }
   // Parse sessionId from the URL and autofill it
-  window.addEventListener('DOMContentLoaded', () => {
-  const urlParts = window.location.pathname.split('/');
-  const maybeSessionId = urlParts[1];
-  if (maybeSessionId && maybeSessionId.length >= 6) {
-    const sessionInput = document.getElementById('sessionId');
-    const createBtn = document.getElementById('createSessionBtn');
 
 
-    sessionInput.value = maybeSessionId;
-    sessionInput.style.display = 'none'; // Optional
-    if (createBtn) createBtn.style.display = 'none'; // ✅ Hide "Create Session" button
-  }
-});
 document.getElementById('createSessionBtn')?.addEventListener('click', createSession);
 
 document.getElementById('name').focus();
 
     
     const fibonacci = [0, 1, 2, 3, 5, 8, 13, '?'];
-
-    let sessionId = '';
-    let userName = '';
     let isAdmin = false;
     let votesRevealed = false;
     window._notifiedOnce = false;
@@ -146,8 +149,9 @@ document.getElementById('name').focus();
     document.getElementById('sessionCodeDisplay').textContent = `Session ID: ${sessionId}`;
 
     renderCards();
-    fetchSessionState(); // 👈 this triggers the visual update of the grid
+    setTimeout(fetchSessionState, 500); // ✅ Give backend time to update
   });
+
 }
 
 
@@ -210,40 +214,36 @@ function clearVotes() {
 }
 
 function renderSessionState(session) {
-  while (session?.value) session = session.value;
-  const currentUser = session.users?.find(u => u.name === userName);
-if (currentUser?.isAdmin) {
-  document.getElementById('adminControls').classList.remove('hidden');
-} else {
-  document.getElementById('adminControls').classList.add('hidden');
-}
-
-
-  console.log("Session state received:", session);
-
   if (!session || !session.users) {
     console.warn("Session state is invalid:", session);
     return;
   }
 
+  console.log("Session state received:", session);
+
   const { users, votesRevealed: revealed } = session;
   votesRevealed = revealed;
 
+  const currentUser = users.find(u => u.name.toLowerCase() === userName);
+
+  if (currentUser?.isAdmin) {
+    isAdmin = true;
+    document.getElementById('adminControls').classList.remove('hidden');
+  } else {
+    isAdmin = false;
+    document.getElementById('adminControls').classList.add('hidden');
+  }
+
   const voteList = document.getElementById('voteList');
   voteList.innerHTML = `
-  <div class="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-800 w-full">
-    <div class="grid grid-cols-2 border-b px-4 py-2 font-semibold text-left text-gray-800 dark:text-gray-100">
-      <div>Name</div>
-      <div class="text-right">Vote</div>
+    <div class="overflow-hidden rounded-lg shadow bg-white dark:bg-gray-800 w-full">
+      <div class="grid grid-cols-2 border-b px-4 py-2 font-semibold text-left text-gray-800 dark:text-gray-100">
+        <div>Name</div>
+        <div class="text-right">Vote</div>
+      </div>
+      <div id="voteRows"></div>
     </div>
-    <div id="voteRows"></div>
-  </div>
-`;
-
-
-  isAdmin = false;
-  currentUser = users.find(u => u.name === userName);
-  if (currentUser?.isAdmin) isAdmin = true;
+  `;
 
   const voteRows = document.getElementById('voteRows');
   voteRows.innerHTML = '';
@@ -259,6 +259,7 @@ if (currentUser?.isAdmin) {
     voteRows.appendChild(div);
   });
 }
+
 
 
 
