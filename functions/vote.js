@@ -4,10 +4,9 @@ export async function onRequestPost({ request, env }) {
   
       const redisUrl = env.UPSTASH_REDIS_REST_URL;
       const redisToken = env.UPSTASH_REDIS_REST_TOKEN;
-      const key = `session:${sessionId}`;
   
-      // Get session
-      const getRes = await fetch(`${redisUrl}/get/${key}`, {
+      // Get session (no key prefix)
+      const getRes = await fetch(`${redisUrl}/get/${sessionId}`, {
         headers: {
           Authorization: `Bearer ${redisToken}`,
         },
@@ -28,8 +27,8 @@ export async function onRequestPost({ request, env }) {
   
       user.vote = vote;
   
-      // Save session
-      await fetch(`${redisUrl}/set/${key}`, {
+      // Save session (no key prefix)
+      await fetch(`${redisUrl}/set/${sessionId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${redisToken}`,
