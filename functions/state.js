@@ -25,21 +25,8 @@ export async function onRequestGet({ request, env }) {
     const nonAdminUsers = users.filter(u => !u.isAdmin);
     const allVoted = nonAdminUsers.length > 0 && nonAdminUsers.every(u => u.vote !== undefined && u.vote !== null);
 
-    // This will be sent to the client
-    let triggerSound = null;
-
-    if (allVoted && session.triggerSoundSent === undefined) {
-      const now = Date.now();
-      session.triggerSoundSent = now;
-      triggerSound = now;
-
-      // Save the updated session with trigger flag
-      await putSession(env, sessionId, session);
-    } else if (session.triggerSoundSent !== undefined) {
-      // Pass the current triggerSound and then clear it
-      triggerSound = session.triggerSoundSent;
-
-      delete session.triggerSoundSent;
+    if (allVoted && !session.triggerSoundSent) {
+      session.triggerSoundSent = Date.now(); // timestamp ensures uniqueness
       await putSession(env, sessionId, session);
     }
 
@@ -47,7 +34,7 @@ export async function onRequestGet({ request, env }) {
       JSON.stringify({
         users: session.users,
         revealed: session.revealed || false,
-        triggerSound
+        triggerSound: session.triggerSoundSent || null // return timestamp
       }),
       { headers: { 'Content-Type': 'application/json' } }
     );
