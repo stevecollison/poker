@@ -22,6 +22,8 @@
 </script>
 </head>
 <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen px-6 pt-8 transition-colors">
+
+<div class="animate-fade-in-down transition-all duration-300">...</div>
 <div class="w-full flex justify-center px-4">
 <div class="max-w-md w-full mx-auto text-center">
      <!-- Logo centered above welcome -->
@@ -43,7 +45,7 @@
       <div class="flex flex-col sm:flex-row gap-3 justify-center mt-2">
       <button
   type="submit"
-  class="bg-blue-500 hover:bg-blue-600 hover:shadow-md hover:brightness-110 text-white px-4 py-2 rounded transition-all duration-200"
+  class="bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 hover:shadow-md hover:brightness-110 text-white px-4 py-2 rounded transition-all duration-200"
 >
   Join Session
 </button>
@@ -99,9 +101,27 @@
   <div id="notification" class="fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-md opacity-0 transition-all duration-300 z-50 scale-95 pointer-events-none flex items-center gap-2">
   <span>🔔 Everyone has voted!</span>
 </div>
+</div>
 
 
-
+<!-- Add this Tailwind plugin if you want built-in animations -->
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        animation: {
+          'fade-in-down': 'fadeInDown 0.3s ease-out both'
+        },
+        keyframes: {
+          fadeInDown: {
+            '0%': { opacity: 0, transform: 'translateY(-10px)' },
+            '100%': { opacity: 1, transform: 'translateY(0)' }
+          }
+        }
+      }
+    }
+  }
+</script>
   <script>
     let lastTriggerSound = null;
 
