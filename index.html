@@ -170,31 +170,35 @@ function stopPolling() {
 
 
 
-    function renderCards() {
+function renderCards() {
   const container = document.getElementById('cards');
   container.innerHTML = '';
   fibonacci.forEach(value => {
     const card = document.createElement('div');
-    card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200';    card.textContent = value;
+    card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200';
+    card.textContent = value;
+
     card.onclick = () => {
       if (votesRevealed && !isAdmin) return;
 
+      document.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+      });
+      card.classList.add('bg-blue-300', 'dark:bg-blue-700');
 
-  document.querySelectorAll('.card').forEach(c => {
-    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
-  });
-  card.classList.add('bg-blue-300', 'dark:bg-blue-700');
+      fetch('/vote', {
+        method: 'POST',
+        body: JSON.stringify({ sessionId, userName, vote: value }),
+        headers: { 'Content-Type': 'application/json' }
+      }).then(() => {
+        fetchSessionState(); // 👈 Instant update
+      });
+    };
 
-  fetch('/vote', {
-  method: 'POST',
-  body: JSON.stringify({ sessionId, userName, vote: value }),
-  headers: { 'Content-Type': 'application/json' }
-}).then(() => {
-  fetchSessionState(); // 👈 Instant update
-});
-container.appendChild(card);
-}); // end of fibonacci.forEach
-} // end of renderCards
+    container.appendChild(card); // ✅ This must stay inside the forEach
+  }); // ✅ Close forEach
+} // ✅ Close renderCards
+
 
 
 function fetchSessionState() {
