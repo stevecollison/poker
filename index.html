@@ -319,13 +319,22 @@ if (currentUser?.isAdmin) {
   header.innerHTML = `<div>Name</div><div class="text-right">Vote</div>`;
   wrapper.appendChild(header);
 
-  Object.values(users).forEach(user => {
-    const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '';
-    const row = document.createElement('div');
-    row.className = 'grid grid-cols-2 border-t px-4 py-2';
-    row.innerHTML = `<div class="text-left pl-2">${user.name}</div><div class="text-right pr-2">${vote}</div>`;
-    wrapper.appendChild(row);
-  });
+  const sortedUsers = Object.values(users).sort((a, b) => {
+  const aVote = votesRevealed ? parseFloat(a.vote) : 0;
+  const bVote = votesRevealed ? parseFloat(b.vote) : 0;
+  if (isNaN(aVote)) return 1;
+  if (isNaN(bVote)) return -1;
+  return aVote - bVote;
+});
+
+sortedUsers.forEach(user => {
+  const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '';
+  const row = document.createElement('div');
+  row.className = 'grid grid-cols-2 border-t px-4 py-2';
+  row.innerHTML = `<div class="text-left pl-2">${user.name}</div><div class="text-right pr-2">${vote}</div>`;
+  wrapper.appendChild(row);
+});
+
 
   voteList.appendChild(wrapper);
 
