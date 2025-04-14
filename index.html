@@ -38,8 +38,10 @@
 
     <!-- Form -->
     <form id="setup" class="space-y-4" onsubmit="joinSession(); return false;">
+    <div id="sessionField">
     <label for="sessionId" class="block text-sm text-gray-600 dark:text-gray-300 text-left">Session ID</label>
       <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
+      </div>
       <label for="name" class="block text-sm text-gray-600 dark:text-gray-300 text-left">Your Name</label>
       <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" autofocus autocomplete="off" />
       <div class="flex flex-col sm:flex-row sm:gap-4 gap-2">
@@ -120,7 +122,8 @@
     const createBtn = document.getElementById('createSessionBtn');
 
     sessionInput.value = sessionId;
-    sessionInput.style.display = 'none';
+    const sessionField = document.getElementById('sessionField');
+if (sessionField) sessionField.style.display = 'none';
     if (createBtn) createBtn.style.display = 'none';
   }
 });
