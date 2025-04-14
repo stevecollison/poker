@@ -8,17 +8,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        fontFamily: {
-          sans: ['Inter', 'sans-serif'],
-          heading: ['Space Grotesk', 'sans-serif']
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        heading: ['Space Grotesk', 'sans-serif']
+      },
+      keyframes: {
+        clickPulse: {
+          '0%': { transform: 'scale(1)' },
+          '30%': { transform: 'scale(0.9)' },
+          '100%': { transform: 'scale(1)' },
         }
+      },
+      animation: {
+        clickPulse: 'clickPulse 200ms ease-in-out',
       }
     }
   }
+}
 </script>
 </head>
 <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen px-6 pt-8 transition-colors">
@@ -251,18 +261,25 @@ function renderCards() {
     }
 
     card.onclick = () => {
-      if (votesRevealed && !isAdmin) return;
-      document.querySelectorAll('.card').forEach(c => {
-        c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
-      });
-      card.classList.add('bg-blue-300', 'dark:bg-blue-700');
+  if (votesRevealed && !isAdmin) return;
 
-      fetch('/vote', {
-        method: 'POST',
-        body: JSON.stringify({ sessionId, userName, vote: value }),
-        headers: { 'Content-Type': 'application/json' }
-      }).then(fetchSessionState);
-    };
+  document.querySelectorAll('.card').forEach(c => {
+    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+  });
+
+  card.classList.add('bg-blue-300', 'dark:bg-blue-700');
+
+  // 🎯 Animate on click
+  card.classList.add('animate-card-press');
+  setTimeout(() => card.classList.remove('animate-card-press'), 200);
+
+  fetch('/vote', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId, userName, vote: value }),
+    headers: { 'Content-Type': 'application/json' }
+  }).then(fetchSessionState);
+};
+
 
     container.appendChild(card);
   });
