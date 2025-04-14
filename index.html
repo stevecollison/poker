@@ -393,6 +393,9 @@ if (votesRevealed && stats) {
   statsDiv.innerHTML = '';
 }
 
+if (window._notifiedOnce && session.triggerSound === false) {
+  window._notifiedOnce = false;
+}
 
 // Check if all non-admin users have voted
 if (!window._notifiedOnce && !votesRevealed) {
