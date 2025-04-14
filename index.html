@@ -309,6 +309,14 @@ function renderSessionState(session) {
   const { users, revealed } = session; // 👈 use 'revealed' directly
   votesRevealed = revealed ?? false;
 
+// 🔊 Handle server-triggered sound
+if (session.triggerSound && soundEnabled && userHasInteracted) {
+  voteSound.play().catch(err => {
+    console.warn("Audio failed to play:", err);
+  });
+}
+
+
   if (votesRevealed) {
   stopPolling();
   startPolling(3000); // slower polling after round ends
