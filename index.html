@@ -337,7 +337,7 @@ const numericVotes = Object.values(users)
 // Calculate and render stats
 const stats = calculateStats(numericVotes);
 const statsDiv = document.getElementById('voteStats');
-if (stats) {
+if (votesRevealed && stats) {
   statsDiv.innerHTML = `
     <div class="mt-2">
       <strong>Stats:</strong> 
@@ -347,7 +347,7 @@ if (stats) {
     </div>
   `;
 } else {
-  statsDiv.innerHTML = ''; // Clear if not enough data
+  statsDiv.innerHTML = '';
 }
 
 
