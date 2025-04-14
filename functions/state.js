@@ -1,6 +1,6 @@
 import { getSession, saveSession as putSession } from './lib/session.js';
 
-export async function onRequestGet({ request }) {
+export async function onRequestGet({ request, env }) {
   try {
     const url = new URL(request.url);
     const sessionId = url.searchParams.get('sessionId');
@@ -12,7 +12,7 @@ export async function onRequestGet({ request }) {
       });
     }
 
-    const session = await getSession(sessionId);
+    const session = await getSession(env, sessionId);
 
     if (!session || !session.users) {
       return new Response(JSON.stringify({ error: 'Session not found' }), {
@@ -30,7 +30,8 @@ export async function onRequestGet({ request }) {
     if (allVoted && !session.triggerSoundSent) {
         session.triggerSoundSent = Date.now();
       triggerSound = true;
-      await putSession(sessionId, session);
+      await putSession(env, sessionId, session);
+
     }
 
     return new Response(

@@ -1,40 +1,24 @@
-import { customAlphabet } from 'nanoid';
+import { saveSession } from './lib/session.js';
+import { nanoid } from 'nanoid';
 
-export async function onRequest({ request, env }) {
+export async function onRequestGet({ env }) {
   try {
-    const redisUrl = env.UPSTASH_REDIS_REST_URL;
-    const redisToken = env.UPSTASH_REDIS_REST_TOKEN;
-
-    const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8);
-    const sessionId = nanoid();
+    const sessionId = nanoid(8);
 
     const session = {
-      users: [],
-      votes: {},
+      users: {},
       revealed: false,
     };
 
-    const response = await fetch(`${redisUrl}/set/${sessionId}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${redisToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        value: session,
-        expiration: 86400, // 1 day
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Upstash error: ${response.status} ${await response.text()}`);
-    }
+    await saveSession(env, sessionId, session);
 
     return new Response(JSON.stringify({ sessionId }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' }
     });
   } catch (err) {
-    console.error('🔥 Error creating session:', err);
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response(JSON.stringify({ error: err.message || 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

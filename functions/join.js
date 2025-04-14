@@ -1,19 +1,40 @@
 import { getSession, saveSession } from './lib/session.js';
 
 export async function onRequestPost({ request, env }) {
-  const { sessionId, userName } = await request.json();
+  try {
+    const { sessionId, userName } = await request.json();
 
-  const session = await getSession(env, sessionId); // ✅ use env here
+    if (!sessionId || !userName) {
+      return new Response(JSON.stringify({ error: 'Missing sessionId or userName' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-  session.users[userName] = {
-    name: userName,
-    vote: null,
-    isAdmin: Object.keys(session.users).length === 0
-  };
+    const session = await getSession(env, sessionId);
 
-  await saveSession(env, sessionId, session); // ✅ use env here
+    if (!session.users) {
+      session.users = {};
+    }
 
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
+    const isAdmin = Object.keys(session.users).length === 0;
+
+    session.users[userName] = {
+      name: userName,
+      vote: null,
+      isAdmin,
+    };
+
+    await saveSession(env, sessionId, session);
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message || 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
