@@ -196,13 +196,28 @@ function stopPolling() {
 
 function renderCards() {
   const container = document.getElementById('cards');
+  const existingCards = container.querySelectorAll('.card');
+
+  // If count hasn't changed, just update highlights
+  if (existingCards.length === fibonacci.length) {
+    const currentUser = sessionUsers?.[userName];
+    existingCards.forEach((card, index) => {
+      const value = fibonacci[index];
+      card.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+      if (currentUser && currentUser.vote === value) {
+        card.classList.add('bg-blue-300', 'dark:bg-blue-700');
+      }
+    });
+    return;
+  }
+
+  // Otherwise, fully re-render
   container.innerHTML = '';
   fibonacci.forEach(value => {
     const card = document.createElement('div');
     card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-lg hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500';
     card.textContent = value;
 
-    // If this card matches the user's current vote, highlight it
     const currentUser = sessionUsers?.[userName];
     if (currentUser && currentUser.vote === value) {
       card.classList.add('bg-blue-300', 'dark:bg-blue-700');
@@ -210,7 +225,6 @@ function renderCards() {
 
     card.onclick = () => {
       if (votesRevealed && !isAdmin) return;
-
       document.querySelectorAll('.card').forEach(c => {
         c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
       });
@@ -220,14 +234,13 @@ function renderCards() {
         method: 'POST',
         body: JSON.stringify({ sessionId, userName, vote: value }),
         headers: { 'Content-Type': 'application/json' }
-      }).then(() => {
-        fetchSessionState();
-      });
+      }).then(fetchSessionState);
     };
 
     container.appendChild(card);
   });
 }
+
 
 
 
