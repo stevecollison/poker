@@ -320,9 +320,7 @@ if (
   userHasInteracted
 ) {
   lastTriggerSound = session.triggerSound;
-  voteSound.play().catch(err => {
-    console.warn("Audio failed to play:", err);
-  });
+  voteSound.play().catch(console.warn);
 
   const notification = document.getElementById('notification');
   notification.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
@@ -407,36 +405,6 @@ if (votesRevealed && stats) {
   statsDiv.innerHTML = '';
 }
 
-if (window._notifiedOnce && session.triggerSound === false) {
-  window._notifiedOnce = false;
-}
-
-// Check if all non-admin users have voted
-if (!window._notifiedOnce && !votesRevealed) {
-  const nonAdminUsers = Object.values(users).filter(u => !u.isAdmin);
-  const allVoted = nonAdminUsers.every(u => u.vote !== undefined && u.vote !== null);
-
-  if (nonAdminUsers.length > 0 && allVoted) {
-  if (soundEnabled && userHasInteracted) {
-    voteSound.play().catch(err => {
-      console.warn("Audio failed to play:", err);
-    });
-  }
-  const notification = document.getElementById('notification');
-    // Show immediately
-    notification.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-    notification.classList.add('opacity-100', 'scale-100');
-
-    // Lock this to avoid spamming it again
-    window._notifiedOnce = true;
-
-    // Hide after 3s
-    setTimeout(() => {
-      notification.classList.remove('opacity-100', 'scale-100');
-      notification.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-    }, 3000);
-  }
-}
 }
 
 
