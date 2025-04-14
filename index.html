@@ -48,13 +48,13 @@
   </div>
 </div>
 
-    <div id="game" class="hidden mt-6 space-y-6">
+  <div id="game" class="hidden mt-4 space-y-4">
     <div class="text-center space-y-1">
   <h2 class="text-xl font-heading">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
   <p id="sessionCodeDisplay" class="text-sm text-gray-500 dark:text-gray-400">Session ID: </p>
         <div id="adminControls" class="mt-4 hidden space-x-4">
-          <button onclick="revealVotes()" class="bg-purple-600 text-white px-4 py-2 rounded">Reveal Votes</button>
-          <button onclick="clearVotes()" class="bg-yellow-500 text-white px-4 py-2 rounded">Clear Votes</button>
+        <button onclick="revealVotes()" class="bg-purple-600 text-white px-6 py-2 rounded w-40 flex items-center justify-center gap-2">👁️ Reveal</button>
+        <button onclick="clearVotes()" class="bg-yellow-500 text-white px-6 py-2 rounded w-40 flex items-center justify-center gap-2">♻️ Clear</button>
           <span class="text-green-600 font-semibold">(You are the admin)</span>
         </div>
       </div>
@@ -200,7 +200,7 @@ function renderCards() {
   container.innerHTML = '';
   fibonacci.forEach(value => {
     const card = document.createElement('div');
-    card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200';
+    card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-lg hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500';
     card.textContent = value;
 
     // If this card matches the user's current vote, highlight it
