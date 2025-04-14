@@ -234,57 +234,46 @@ function stopPolling() {
 
 function renderCards() {
   const container = document.getElementById('cards');
-  const existingCards = container.querySelectorAll('.card');
-
-  // If count hasn't changed, just update highlights
-  if (existingCards.length === fibonacci.length) {
-    const currentUser = sessionUsers?.[userName];
-    existingCards.forEach((card, index) => {
-      const value = fibonacci[index];
-      card.classList.remove('bg-blue-300', 'dark:bg-blue-700');
-      if (currentUser && currentUser.vote === value) {
-        card.classList.add('bg-blue-300', 'dark:bg-blue-700');
-      }
-    });
-    return;
-  }
-
-  // Otherwise, fully re-render
   container.innerHTML = '';
+  const currentUser = sessionUsers?.[userName];
+
   fibonacci.forEach(value => {
     const card = document.createElement('div');
-    card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-lg hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500';
+    const isSelected = currentUser && currentUser.vote === value;
+
+    card.className = [
+      'card group w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow text-xl font-bold cursor-pointer transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500',
+      'bg-white dark:bg-gray-800',
+      'hover:scale-105 hover:shadow-lg',
+      isSelected ? 'bg-blue-300 dark:bg-blue-700' : 'hover:bg-blue-100 dark:hover:bg-gray-700'
+    ].join(' ');
+
     card.textContent = value;
 
-    const currentUser = sessionUsers?.[userName];
-    if (currentUser && currentUser.vote === value) {
-      card.classList.add('bg-blue-300', 'dark:bg-blue-700');
-    }
-
     card.onclick = () => {
-  if (votesRevealed && !isAdmin) return;
+      if (votesRevealed && !isAdmin) return;
 
-  document.querySelectorAll('.card').forEach(c => {
-    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
-  });
+      document.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+      });
 
-  card.classList.add('bg-blue-300', 'dark:bg-blue-700');
+      card.classList.add('bg-blue-300', 'dark:bg-blue-700');
 
-  // 🎯 Animate on click
-  card.classList.add('animate-clickPulse');
-  setTimeout(() => card.classList.remove('animate-clickPulse'), 200);
+      // 🎯 Animate
+      card.classList.add('animate-clickPulse');
+      setTimeout(() => card.classList.remove('animate-clickPulse'), 200);
 
-  fetch('/vote', {
-    method: 'POST',
-    body: JSON.stringify({ sessionId, userName, vote: value }),
-    headers: { 'Content-Type': 'application/json' }
-  }).then(fetchSessionState);
-};
-
+      fetch('/vote', {
+        method: 'POST',
+        body: JSON.stringify({ sessionId, userName, vote: value }),
+        headers: { 'Content-Type': 'application/json' }
+      }).then(fetchSessionState);
+    };
 
     container.appendChild(card);
   });
 }
+
 
 
 
