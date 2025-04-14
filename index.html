@@ -371,6 +371,7 @@ if (currentUser?.isAdmin) {
   return aVote - bVote;
 });
 
+
 sortedUsers.forEach(user => {
   const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '';
   const row = document.createElement('div');
