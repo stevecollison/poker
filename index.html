@@ -235,10 +235,16 @@ function clearVotes() {
     headers: { 'Content-Type': 'application/json' }
   }).then(() => {
     window._notifiedOnce = false;
-    stopPolling();         // 🛑 pause first
-    startPolling(1000);    // ✅ restart polling at 1s for new round
+    stopPolling();
+    startPolling(1000);
+
+    // 🔽 Clear selected card highlight
+    document.querySelectorAll('.card').forEach(c => {
+      c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+    });
   });
 }
+
 
 
 function renderSessionState(session) {
