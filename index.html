@@ -82,7 +82,10 @@
 
 
   <script>
+    let lastTriggerSound = null;
+
    const voteSound = new Audio('/ping.mp3');
+
 
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -312,14 +315,25 @@ function renderSessionState(session) {
 // 🔊 Handle server-triggered sound
 if (
   session.triggerSound &&
-  Date.now() - Number(session.triggerSound) < 5000 && // 5 seconds window
+  session.triggerSound !== lastTriggerSound &&
   soundEnabled &&
   userHasInteracted
 ) {
+  lastTriggerSound = session.triggerSound;
   voteSound.play().catch(err => {
     console.warn("Audio failed to play:", err);
   });
+
+  const notification = document.getElementById('notification');
+  notification.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+  notification.classList.add('opacity-100', 'scale-100');
+
+  setTimeout(() => {
+    notification.classList.remove('opacity-100', 'scale-100');
+    notification.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+  }, 3000);
 }
+
 
 
   if (votesRevealed) {
