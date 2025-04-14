@@ -349,7 +349,7 @@ if (
 }
 
 
-const currentUser = Object.values(session.users).find(u => u.name.toLowerCase() === userName.toLowerCase());
+const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName.toLowerCase());
 
 
 if (currentUser?.isAdmin) {
