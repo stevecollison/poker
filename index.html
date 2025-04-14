@@ -311,20 +311,21 @@ if (!window._notifiedOnce && !votesRevealed) {
 
   if (nonAdminUsers.length > 0 && allVoted) {
     const notification = document.getElementById('notification');
+
+    // Show immediately
     notification.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
     notification.classList.add('opacity-100', 'scale-100');
 
-    // Hide after 3 seconds
+    // Lock this to avoid spamming it again
+    window._notifiedOnce = true;
+
+    // Hide after 3s
     setTimeout(() => {
+      notification.classList.remove('opacity-100', 'scale-100');
       notification.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
     }, 3000);
-
-    window._notifiedOnce = true;
   }
 }
-
-
-
 }
 
 
