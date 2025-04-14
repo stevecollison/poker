@@ -99,6 +99,13 @@
   }
 });
 
+let userHasInteracted = false;
+
+window.addEventListener('click', () => {
+  userHasInteracted = true;
+});
+
+
     let sessionId = '';
     let userName = '';
     let sessionUsers = {};
@@ -380,9 +387,12 @@ if (!window._notifiedOnce && !votesRevealed) {
   const allVoted = nonAdminUsers.every(u => u.vote !== undefined && u.vote !== null);
 
   if (nonAdminUsers.length > 0 && allVoted) {
-    if (soundEnabled) voteSound.play();
-    const notification = document.getElementById('notification');
-
+  if (soundEnabled && userHasInteracted) {
+    voteSound.play().catch(err => {
+      console.warn("Audio failed to play:", err);
+    });
+  }
+  const notification = document.getElementById('notification');
     // Show immediately
     notification.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
     notification.classList.add('opacity-100', 'scale-100');
