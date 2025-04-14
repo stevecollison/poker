@@ -177,7 +177,7 @@ document.getElementById('name').focus();
   });
 }
 
-function startPolling(interval = 1000) {
+function startPolling(interval = 500) {
   if (window.fetchInterval) clearInterval(window.fetchInterval);
   window.fetchInterval = setInterval(fetchSessionState, interval);
 }
@@ -280,7 +280,7 @@ function clearVotes() {
   }).then(() => {
     window._notifiedOnce = false;
     stopPolling();
-    startPolling(1000);
+    startPolling(500);
 
     // 🔽 Clear selected card highlight
     document.querySelectorAll('.card').forEach(c => {
