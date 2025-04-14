@@ -25,6 +25,7 @@ tailwind.config = {
       },
       animation: {
         clickPulse: 'clickPulse 200ms ease-in-out',
+        
       }
     }
   }
@@ -270,8 +271,8 @@ function renderCards() {
   card.classList.add('bg-blue-300', 'dark:bg-blue-700');
 
   // 🎯 Animate on click
-  card.classList.add('animate-card-press');
-  setTimeout(() => card.classList.remove('animate-card-press'), 200);
+  card.classList.add('animate-clickPulse');
+  setTimeout(() => card.classList.remove('animate-clickPulse'), 200);
 
   fetch('/vote', {
     method: 'POST',
