@@ -360,6 +360,10 @@ if (
   startPolling(3000); // slower polling after round ends
 }
 
+console.log("Raw session object:", session);
+console.log("session.users:", session.users);
+console.log("sessionUsers (assigned):", sessionUsers);
+
 
   const voteList = document.getElementById('voteList');
   voteList.innerHTML = ''; // Reset whole block
@@ -382,6 +386,7 @@ if (
 });
 
 sortedUsers.forEach(user => {
+  console.log("Rendering user:", user);
   const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '';
   const row = document.createElement('div');
   row.className = 'grid grid-cols-2 border-t px-4 py-2';
