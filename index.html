@@ -40,9 +40,20 @@
     <form id="setup" class="space-y-4" onsubmit="joinSession(); return false;">
       <input id="sessionId" placeholder="Session ID" class="w-full p-3 border rounded" />
       <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" autofocus autocomplete="off" />
-      <div class="flex justify-between">
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Join Session</button>
-        <button id="createSessionBtn" type="button" class="bg-green-500 text-white px-4 py-2 rounded">Create New Session</button>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center mt-2">
+      <button
+  type="submit"
+  class="bg-blue-500 hover:bg-blue-600 hover:shadow-md hover:brightness-110 text-white px-4 py-2 rounded transition-all duration-200"
+>
+  Join Session
+</button>
+<button
+  id="createSessionBtn"
+  type="button"
+  class="bg-green-500 hover:bg-green-600 hover:shadow-md hover:brightness-110 text-white px-4 py-2 rounded transition-all duration-200"
+>
+  Create New Session
+</button>
       </div>
     </form>
   </div>
