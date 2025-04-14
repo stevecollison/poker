@@ -1,5 +1,4 @@
-import { getSession, putSession } from './lib/session.js';
-
+import { getSession, saveSession as putSession } from './lib/session.js';
 
 export async function onRequestGet({ request }) {
   try {
