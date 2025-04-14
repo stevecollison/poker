@@ -53,8 +53,19 @@
   <h2 class="text-xl font-heading">Welcome, <span id="usernameDisplay" class="font-semibold"></span></h2>
   <p id="sessionCodeDisplay" class="text-sm text-gray-500 dark:text-gray-400">Session ID: </p>
     <div id="adminControls" class="mt-4 hidden flex flex-wrap justify-center items-center gap-4">
-        <button onclick="revealVotes()" class="bg-purple-600 text-white px-6 py-2 rounded w-40 flex items-center justify-center gap-2">👁️ Reveal</button>
-        <button onclick="clearVotes()" class="bg-yellow-500 text-white px-6 py-2 rounded w-40 flex items-center justify-center gap-2">♻️ Clear</button>
+    <button
+  onclick="revealVotes()"
+  class="bg-purple-600 hover:bg-purple-700 hover:shadow-md hover:brightness-110 text-white px-6 py-2 rounded w-40 flex items-center justify-center gap-2 transition-all duration-200"
+>
+  👁️ Reveal
+</button>
+<button
+  onclick="clearVotes()"
+  class="bg-yellow-500 hover:bg-yellow-600 hover:shadow-md hover:brightness-110 text-white px-6 py-2 rounded w-40 flex items-center justify-center gap-2 transition-all duration-200"
+>
+  ♻️ Clear
+</button>
+
         </div>
       </div>
 
