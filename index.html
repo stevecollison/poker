@@ -341,9 +341,9 @@ if (votesRevealed && stats) {
   statsDiv.innerHTML = `
     <div class="mt-2">
       <strong>Stats:</strong> 
-      Mean: ${stats.mean}, 
-      Median: ${stats.median}, 
-      Mode: ${stats.mode}
+      Mean: <span class="text-blue-600 font-semibold">${stats.mean}</span>, 
+      Median: <span class="text-blue-600 font-semibold">${stats.median}</span>, 
+      Mode: <span class="text-blue-600 font-semibold">${stats.mode}</span>
     </div>
   `;
 } else {
