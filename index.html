@@ -308,9 +308,10 @@ function renderSessionState(session) {
   }
 
   sessionUsers = session.users; 
-  const { users, revealed } = session; // 👈 use 'revealed' directly
+  const { users, revealed } = session;
   votesRevealed = revealed ?? false;
-  renderCards(); 
+
+  renderCards();
 
   const currentUser = Object.values(users).find(
     u => u.name.toLowerCase() === userName.toLowerCase()
@@ -359,17 +360,6 @@ if (
   startPolling(3000); // slower polling after round ends
 }
 
-const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName.toLowerCase());
-
-
-
-if (currentUser?.isAdmin) {
-  isAdmin = true;
-  document.getElementById('adminControls').classList.remove('hidden');
-} else {
-  isAdmin = false;
-  document.getElementById('adminControls').classList.add('hidden');
-}
 
   const voteList = document.getElementById('voteList');
   voteList.innerHTML = ''; // Reset whole block
