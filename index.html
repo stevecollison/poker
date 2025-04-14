@@ -29,9 +29,11 @@
   <img src="/scrumpokerlogo.png" alt="Scrum Poker Logo" class="h-16">
 </div>
 <!-- Dark mode toggle moved to top right -->
-<div class="absolute top-4 right-4">
+<div class="absolute top-4 right-4 flex gap-2">
   <button onclick="toggleDarkMode()" class="bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🌓</button>
+  <button id="soundToggle" onclick="toggleSound()" class="bg-gray-300 dark:bg-gray-700 px-3 py-1 rounded text-sm">🔇</button>
 </div>
+
 
 
     <!-- Form -->
@@ -80,6 +82,9 @@
 
 
   <script>
+   const voteSound = new Audio('/ping.mp3');
+
+
   window.addEventListener('DOMContentLoaded', () => {
   const urlParts = window.location.pathname.split('/');
   const maybeSessionId = urlParts[1];
@@ -98,7 +103,13 @@
     let userName = '';
     let sessionUsers = {};
 
-  
+    let soundEnabled = false;
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('soundToggle').textContent = soundEnabled ? '🔔' : '🔇';
+}
+
 
     function createSession() {
   fetch('/create-session')
@@ -369,6 +380,7 @@ if (!window._notifiedOnce && !votesRevealed) {
   const allVoted = nonAdminUsers.every(u => u.vote !== undefined && u.vote !== null);
 
   if (nonAdminUsers.length > 0 && allVoted) {
+    if (soundEnabled) voteSound.play();
     const notification = document.getElementById('notification');
 
     // Show immediately
