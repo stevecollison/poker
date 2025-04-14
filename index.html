@@ -235,16 +235,21 @@ function stopPolling() {
 function renderCards() {
   const container = document.getElementById('cards');
   const existingCards = container.querySelectorAll('.card');
-
+  const currentUser = sessionUsers?.[userName];
   // If count hasn't changed, just update highlights
   if (existingCards.length === fibonacci.length) {
-    const currentUser = sessionUsers?.[userName];
+    
     existingCards.forEach((card, index) => {
       const value = fibonacci[index];
       card.classList.remove('bg-blue-300', 'dark:bg-blue-700');
       if (currentUser && currentUser.vote === value) {
-        card.classList.add('bg-blue-300', 'dark:bg-blue-700');
-      }
+  card.classList.add(
+    'bg-blue-300',
+    'dark:bg-blue-700',
+    'hover:bg-blue-300',
+    'dark:hover:bg-blue-700'
+  );
+}
     });
     return;
   }
