@@ -313,7 +313,7 @@ function renderSessionState(session) {
 
   renderCards();
 
-  const currentUser = Object.values(users).find(
+  const currentUser = Object.values(sessionUsers).find(
     u => u.name.toLowerCase() === userName.toLowerCase()
   );
 
@@ -393,7 +393,7 @@ sortedUsers.forEach(user => {
   voteList.appendChild(wrapper);
 
   // Extract numerical votes
-const numericVotes = Object.values(users)
+const numericVotes = Object.values(sessionUsers)
   .map(u => {
     const n = parseFloat(u.vote);
     return isNaN(n) ? null : n;
