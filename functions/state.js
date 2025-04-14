@@ -1,4 +1,4 @@
-import { getSession } from './session';
+import { getSession, putSession } from './session';
 
 export async function onRequestGet({ request }) {
   try {
@@ -28,8 +28,9 @@ export async function onRequestGet({ request }) {
     let triggerSound = false;
 
     if (allVoted && !session.triggerSoundSent) {
-      session.triggerSoundSent = true;
+        session.triggerSoundSent = Date.now();
       triggerSound = true;
+      await putSession(sessionId, session);
     }
 
     return new Response(

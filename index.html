@@ -310,7 +310,12 @@ function renderSessionState(session) {
   votesRevealed = revealed ?? false;
 
 // 🔊 Handle server-triggered sound
-if (session.triggerSound && soundEnabled && userHasInteracted) {
+if (
+  session.triggerSound &&
+  Date.now() - Number(session.triggerSound) < 5000 && // 5 seconds window
+  soundEnabled &&
+  userHasInteracted
+) {
   voteSound.play().catch(err => {
     console.warn("Audio failed to play:", err);
   });
