@@ -366,9 +366,41 @@ function calculateStats(votes) {
 }
 
 
+function removeUser(targetName) {
+  if (!isAdmin) return;
+
+  const confirmRemoval = confirm(`Remove ${targetName} from the session?`);
+  if (!confirmRemoval) return;
+
+  fetch('/remove-user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, targetUser: targetName, requestedBy: userName })
+  })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(data => {
+          throw new Error(data.error || 'Failed to remove user');
+        });
+      }
+      fetchSessionState();
+    })
+    .catch(err => {
+      console.error('Remove user error:', err);
+      alert(err.message || 'Failed to remove user');
+    });
+}
+
 function renderSessionState(session) {
   if (!session || !session.users) {
     console.warn("Session state is invalid:", session);
+    return;
+  }
+
+  if (!session.users[userName]) {
+    stopPolling();
+    alert('You have been removed from the session.');
+    window.location.href = '/';
     return;
   }
 
@@ -441,9 +473,32 @@ if (currentUser?.isAdmin) {
 sortedUsers.forEach(user => {
   const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '<span class="text-gray-400">—</span>';
   const row = document.createElement('div');
-  row.className = 'grid grid-cols-2 border-t px-4 py-2 odd:bg-gray-50 dark:odd:bg-gray-700';
+  row.className = 'group grid grid-cols-2 border-t px-4 py-2 odd:bg-gray-50 dark:odd:bg-gray-700';
   const displayName = user.isAdmin ? `${user.name} (Admin)` : user.name;
-  row.innerHTML = `<div class="text-left pl-2">${displayName}</div><div class="text-right pr-2">${vote}</div>`;
+
+  const nameCell = document.createElement('div');
+  nameCell.className = 'text-left pl-2 flex items-center justify-between gap-2';
+  nameCell.textContent = displayName;
+
+  if (isAdmin && user.name !== userName) {
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = '✕';
+    removeBtn.title = `Remove ${user.name}`;
+    removeBtn.className = 'text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 px-2 py-1 rounded focus:outline-none';
+    removeBtn.onclick = (event) => {
+      event.stopPropagation();
+      removeUser(user.name);
+    };
+    nameCell.appendChild(removeBtn);
+  }
+
+  const voteCell = document.createElement('div');
+  voteCell.className = 'text-right pr-2';
+  voteCell.innerHTML = vote;
+
+  row.appendChild(nameCell);
+  row.appendChild(voteCell);
   wrapper.appendChild(row);
 });
 
