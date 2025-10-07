@@ -29,7 +29,7 @@
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
     const socket = io();
     const joinBtn = document.getElementById('join');
@@ -40,15 +40,40 @@
     const revealBtn = document.getElementById('reveal');
     const clearBtn = document.getElementById('clear');
 
-    let sessionId;
+    let selfId;
+
+    const renderState = ({ users, votesRevealed }) => {
+      usersDiv.innerHTML = '';
+      const currentUser = selfId ? users[selfId] : undefined;
+      setAdminControlsState(Boolean(currentUser?.isAdmin));
+
+      Object.values(users).forEach(({ name, vote }) => {
+        const displayVote = votesRevealed ? vote : (vote ? '✓' : '');
+        usersDiv.innerHTML += `<div class="p-2 border-b">${name}: <strong>${displayVote ?? ''}</strong></div>`;
+      });
+    };
 
     joinBtn.addEventListener('click', () => {
-      const name = nameInput.value;
-      sessionId = sessionIdInput.value;
-      if (name && sessionId) {
-        socket.emit('join', { sessionId, name });
-        votePanel.classList.remove('hidden');
+      const name = nameInput.value.trim();
+      const sessionId = sessionIdInput.value.trim();
+
+      if (!name || !sessionId) {
+        alert('Both name and session ID are required.');
+        return;
       }
+
+      socket.emit('join', { sessionId, name }, (response) => {
+        if (!response || !response.success) {
+          const message = response?.message || 'Unable to join the session. Please try again.';
+          alert(message);
+          return;
+        }
+
+        selfId = response.selfId;
+        votePanel.classList.remove('hidden');
+        setAdminControlsState(response.isAdmin);
+        renderState(response.state);
+      });
     });
 
     document.querySelectorAll('.vote-btn').forEach(btn => {

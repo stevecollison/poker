@@ -25,9 +25,9 @@ app.get('/create-session', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  socket.on('join', ({ sessionId, name }) => {
+  socket.on('join', ({ sessionId, name }, callback = () => {}) => {
     if (!sessions[sessionId]) {
-      socket.emit('error', 'Session does not exist.');
+      callback({ success: false, message: 'Session does not exist.' });
       return;
     }
     const session = sessions[sessionId];
@@ -57,10 +57,20 @@ io.on('connection', (socket) => {
     session.users[socket.id] = { name: trimmedName, vote: null, isAdmin };
     socket.join(sessionId);
     socket.sessionId = sessionId;
-    io.to(sessionId).emit('state', {
+
+    const state = {
       users: session.users,
       votesRevealed: session.votesRevealed
+    };
+
+    callback({
+      success: true,
+      isAdmin,
+      selfId: socket.id,
+      state
     });
+
+    io.to(sessionId).emit('state', state);
   });
 
   socket.on('vote', (value) => {
