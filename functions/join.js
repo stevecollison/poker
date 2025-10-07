@@ -17,7 +17,9 @@ export async function onRequestPost({ request, env }) {
       session.users = {};
     }
 
-    const isAdmin = Object.keys(session.users).length === 0;
+    const existingUser = session.users[userName];
+    const hasAdmin = Object.values(session.users).some(user => user.isAdmin);
+    const isAdmin = existingUser?.isAdmin ?? !hasAdmin;
 
     session.users[userName] = {
       name: userName,
