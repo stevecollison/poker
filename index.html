@@ -190,6 +190,9 @@ document.getElementById('name').focus();
     let hoveredRemoveUser = null;
     window._notifiedOnce = false;
     window.fetchInterval = null;
+    const ACTIVE_POLL_INTERVAL = 200;
+    const REVEALED_POLL_INTERVAL = 1500;
+    let currentPollInterval = null;
 
     function toggleDarkMode() {
       document.documentElement.classList.toggle('dark');
@@ -220,14 +223,22 @@ document.getElementById('name').focus();
   });
 }
 
-function startPolling(interval = 500) {
+function startPolling(interval = ACTIVE_POLL_INTERVAL) {
   if (window.fetchInterval) clearInterval(window.fetchInterval);
   window.fetchInterval = setInterval(fetchSessionState, interval);
+  currentPollInterval = interval;
 }
 function stopPolling() {
   if (window.fetchInterval) {
     clearInterval(window.fetchInterval);
     window.fetchInterval = null;
+  }
+  currentPollInterval = null;
+}
+
+function ensurePollingInterval(interval) {
+  if (currentPollInterval !== interval) {
+    startPolling(interval);
   }
 }
 
@@ -345,7 +356,7 @@ function clearVotes() {
   }).then(() => {
     window._notifiedOnce = false;
     stopPolling();
-    startPolling(500);
+    startPolling(ACTIVE_POLL_INTERVAL);
 
     // 🔽 Clear selected card highlight
     document.querySelectorAll('.card').forEach(c => {
@@ -450,9 +461,10 @@ if (
 
 
   if (votesRevealed) {
-  stopPolling();
-  startPolling(3000); // slower polling after round ends
-}
+    ensurePollingInterval(REVEALED_POLL_INTERVAL); // slower polling after round ends
+  } else {
+    ensurePollingInterval(ACTIVE_POLL_INTERVAL);
+  }
 
 
   const currentUser = Object.values(users).find(u => u.name.toLowerCase() === userName.toLowerCase());
