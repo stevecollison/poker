@@ -246,7 +246,12 @@ function renderCards() {
     
     existingCards.forEach((card, index) => {
       const value = fibonacci[index];
-      card.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+      card.classList.remove(
+        'bg-blue-300',
+        'dark:bg-blue-700',
+        'hover:bg-blue-300',
+        'dark:hover:bg-blue-700'
+      );
       if (currentUser && currentUser.vote === value) {
   card.classList.add(
     'bg-blue-300',
@@ -275,7 +280,12 @@ function renderCards() {
   if (votesRevealed && !isAdmin) return;
 
   document.querySelectorAll('.card').forEach(c => {
-    c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+    c.classList.remove(
+      'bg-blue-300',
+      'dark:bg-blue-700',
+      'hover:bg-blue-300',
+      'dark:hover:bg-blue-700'
+    );
   });
 
   card.classList.add('bg-blue-300', 'dark:bg-blue-700');
@@ -339,7 +349,12 @@ function clearVotes() {
 
     // 🔽 Clear selected card highlight
     document.querySelectorAll('.card').forEach(c => {
-      c.classList.remove('bg-blue-300', 'dark:bg-blue-700');
+      c.classList.remove(
+        'bg-blue-300',
+        'dark:bg-blue-700',
+        'hover:bg-blue-300',
+        'dark:hover:bg-blue-700'
+      );
     });
   });
 }
