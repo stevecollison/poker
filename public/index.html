@@ -37,6 +37,8 @@
     const sessionIdInput = document.getElementById('sessionId');
     const votePanel = document.getElementById('vote-panel');
     const usersDiv = document.getElementById('users');
+    const revealBtn = document.getElementById('reveal');
+    const clearBtn = document.getElementById('clear');
 
     let sessionId;
 
@@ -55,20 +57,42 @@
       });
     });
 
-    document.getElementById('reveal').addEventListener('click', () => {
+    const setAdminControlsState = (isAdmin) => {
+      const controls = [revealBtn, clearBtn];
+      controls.forEach(btn => {
+        btn.disabled = !isAdmin;
+        btn.classList.toggle('opacity-50', !isAdmin);
+        btn.classList.toggle('cursor-not-allowed', !isAdmin);
+      });
+    };
+
+    setAdminControlsState(false);
+
+    revealBtn.addEventListener('click', () => {
       socket.emit('reveal');
     });
 
-    document.getElementById('clear').addEventListener('click', () => {
+    clearBtn.addEventListener('click', () => {
       socket.emit('clear');
     });
 
     socket.on('state', ({ users, votesRevealed }) => {
       usersDiv.innerHTML = '';
+      const currentUser = users[socket.id];
+      if (currentUser) {
+        setAdminControlsState(currentUser.isAdmin);
+      }
+
       for (const id in users) {
         const { name, vote } = users[id];
         const displayVote = votesRevealed ? vote : (vote ? '✓' : '');
         usersDiv.innerHTML += `<div class="p-2 border-b">${name}: <strong>${displayVote}</strong></div>`;
+      }
+    });
+
+    socket.on('error', (message) => {
+      if (typeof message === 'string') {
+        alert(message);
       }
     });
   </script>
