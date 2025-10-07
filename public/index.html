@@ -29,7 +29,7 @@
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
     const socket = io();
     const joinBtn = document.getElementById('join');
@@ -37,16 +37,43 @@
     const sessionIdInput = document.getElementById('sessionId');
     const votePanel = document.getElementById('vote-panel');
     const usersDiv = document.getElementById('users');
+    const revealBtn = document.getElementById('reveal');
+    const clearBtn = document.getElementById('clear');
 
-    let sessionId;
+    let selfId;
+
+    const renderState = ({ users, votesRevealed }) => {
+      usersDiv.innerHTML = '';
+      const currentUser = selfId ? users[selfId] : undefined;
+      setAdminControlsState(Boolean(currentUser?.isAdmin));
+
+      Object.values(users).forEach(({ name, vote }) => {
+        const displayVote = votesRevealed ? vote : (vote ? '✓' : '');
+        usersDiv.innerHTML += `<div class="p-2 border-b">${name}: <strong>${displayVote ?? ''}</strong></div>`;
+      });
+    };
 
     joinBtn.addEventListener('click', () => {
-      const name = nameInput.value;
-      sessionId = sessionIdInput.value;
-      if (name && sessionId) {
-        socket.emit('join', { sessionId, name });
-        votePanel.classList.remove('hidden');
+      const name = nameInput.value.trim();
+      const sessionId = sessionIdInput.value.trim();
+
+      if (!name || !sessionId) {
+        alert('Both name and session ID are required.');
+        return;
       }
+
+      socket.emit('join', { sessionId, name }, (response) => {
+        if (!response || !response.success) {
+          const message = response?.message || 'Unable to join the session. Please try again.';
+          alert(message);
+          return;
+        }
+
+        selfId = response.selfId;
+        votePanel.classList.remove('hidden');
+        setAdminControlsState(response.isAdmin);
+        renderState(response.state);
+      });
     });
 
     document.querySelectorAll('.vote-btn').forEach(btn => {
@@ -55,20 +82,39 @@
       });
     });
 
-    document.getElementById('reveal').addEventListener('click', () => {
+    const setAdminControlsState = (isAdmin) => {
+      const controls = [revealBtn, clearBtn];
+      controls.forEach(btn => {
+        btn.disabled = !isAdmin;
+        btn.classList.toggle('opacity-50', !isAdmin);
+        btn.classList.toggle('cursor-not-allowed', !isAdmin);
+      });
+    };
+
+    setAdminControlsState(false);
+
+    revealBtn.addEventListener('click', () => {
       socket.emit('reveal');
     });
 
-    document.getElementById('clear').addEventListener('click', () => {
+    clearBtn.addEventListener('click', () => {
       socket.emit('clear');
     });
 
-    socket.on('state', ({ users, votesRevealed }) => {
-      usersDiv.innerHTML = '';
-      for (const id in users) {
-        const { name, vote } = users[id];
-        const displayVote = votesRevealed ? vote : (vote ? '✓' : '');
-        usersDiv.innerHTML += `<div class="p-2 border-b">${name}: <strong>${displayVote}</strong></div>`;
+    socket.on('state', (state) => {
+      if (state?.users) {
+        renderState(state);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      selfId = undefined;
+      setAdminControlsState(false);
+    });
+
+    socket.on('error', (message) => {
+      if (typeof message === 'string') {
+        alert(message);
       }
     });
   </script>
