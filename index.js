@@ -19,7 +19,7 @@ app.get('/create-session', (req, res) => {
   sessions[sessionId] = {
     users: {},
     votesRevealed: false,
-    admin: null
+    adminName: null
   };
   res.json({ sessionId });
 });
@@ -31,8 +31,43 @@ io.on('connection', (socket) => {
       return;
     }
     const session = sessions[sessionId];
-    const isAdmin = Object.keys(session.users).length === 0;
-    session.users[socket.id] = { name, vote: null, isAdmin };
+    const trimmedName = (name || '').trim();
+    if (!trimmedName) {
+      socket.emit('error', 'A name is required to join the session.');
+      return;
+    }
+
+    const normalizedName = trimmedName.toLowerCase();
+    const currentAdminEntry = Object.values(session.users).find(user => user.isAdmin);
+    const isReturningAdmin = session.adminName === normalizedName;
+    let isAdmin = false;
+
+    if (isReturningAdmin) {
+      isAdmin = true;
+      Object.values(session.users).forEach(user => {
+        user.isAdmin = false;
+      });
+    } else if (!currentAdminEntry) {
+      if (!session.adminName) {
+        isAdmin = true;
+        session.adminName = normalizedName;
+      }
+    }
+
+    if (isAdmin) {
+      session.adminName = normalizedName;
+    }
+
+    const existingUserId = Object.keys(session.users).find(id => {
+      const userName = session.users[id]?.name || '';
+      return userName.trim().toLowerCase() === normalizedName;
+    });
+
+    if (existingUserId) {
+      delete session.users[existingUserId];
+    }
+
+    session.users[socket.id] = { name: trimmedName, vote: null, isAdmin };
     socket.join(sessionId);
     socket.sessionId = sessionId;
     io.to(sessionId).emit('state', {
