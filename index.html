@@ -501,25 +501,12 @@ sortedUsers.forEach(user => {
   nameCell.className = 'text-left pl-2 flex items-center justify-between gap-2';
   nameCell.textContent = displayName;
 
-  row.addEventListener('mouseenter', () => {
-    hoveredRemoveUser = user.name;
-    syncRemoveButtonVisibility();
-  });
-
-  row.addEventListener('mouseleave', () => {
-    if (hoveredRemoveUser === user.name) {
-      hoveredRemoveUser = null;
-      syncRemoveButtonVisibility();
-    }
-  });
-
   if (isAdmin && user.name !== userName) {
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.textContent = '✕';
     removeBtn.title = `Remove ${user.name}`;
-    removeBtn.className = 'text-red-500 hover:text-red-700 opacity-0 pointer-events-none transition-opacity duration-150 px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50';
-    removeBtn.dataset.removeUser = user.name;
+    removeBtn.className = 'text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 px-2 py-1 rounded focus:outline-none';
     removeBtn.onclick = (event) => {
       event.stopPropagation();
       removeUser(user.name);
