@@ -187,6 +187,7 @@ document.getElementById('name').focus();
     const fibonacci = [0, 1, 2, 3, 5, 8, 13, '?'];
     let isAdmin = false;
     let votesRevealed = false;
+    let hoveredRemoveUser = null;
     window._notifiedOnce = false;
     window.fetchInterval = null;
 
@@ -470,6 +471,26 @@ if (currentUser?.isAdmin) {
 });
 
 
+const syncRemoveButtonVisibility = () => {
+  const buttons = document.querySelectorAll('[data-remove-user]');
+  let activeFound = false;
+
+  buttons.forEach(btn => {
+    const target = btn.dataset.removeUser;
+    const shouldShow = hoveredRemoveUser === target;
+    btn.classList.toggle('opacity-100', shouldShow);
+    btn.classList.toggle('opacity-0', !shouldShow);
+    btn.classList.toggle('pointer-events-auto', shouldShow);
+    btn.classList.toggle('pointer-events-none', !shouldShow);
+
+    if (shouldShow) activeFound = true;
+  });
+
+  if (!activeFound) {
+    hoveredRemoveUser = null;
+  }
+};
+
 sortedUsers.forEach(user => {
   const vote = votesRevealed ? user.vote || '' : user.vote ? '✅' : '<span class="text-gray-400">—</span>';
   const row = document.createElement('div');
@@ -504,6 +525,7 @@ sortedUsers.forEach(user => {
 
 
   voteList.appendChild(wrapper);
+  syncRemoveButtonVisibility();
 
   // Extract numerical votes
 const numericVotes = Object.values(users)
