@@ -101,15 +101,18 @@
       socket.emit('clear');
     });
 
-    socket.on('state', (state) => {
-      if (state?.users) {
-        renderState(state);
+    socket.on('state', ({ users, votesRevealed }) => {
+      usersDiv.innerHTML = '';
+      const currentUser = users[socket.id];
+      if (currentUser) {
+        setAdminControlsState(currentUser.isAdmin);
       }
-    });
 
-    socket.on('disconnect', () => {
-      selfId = undefined;
-      setAdminControlsState(false);
+      for (const id in users) {
+        const { name, vote } = users[id];
+        const displayVote = votesRevealed ? vote : (vote ? '✓' : '');
+        usersDiv.innerHTML += `<div class="p-2 border-b">${name}: <strong>${displayVote}</strong></div>`;
+      }
     });
 
     socket.on('error', (message) => {

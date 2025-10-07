@@ -33,38 +33,25 @@ io.on('connection', (socket) => {
     const session = sessions[sessionId];
     const trimmedName = (name || '').trim();
     if (!trimmedName) {
-      callback({ success: false, message: 'A name is required to join the session.' });
+      socket.emit('error', 'A name is required to join the session.');
       return;
     }
 
     const normalizedName = trimmedName.toLowerCase();
     const currentAdminEntry = Object.values(session.users).find(user => user.isAdmin);
-    const isReturningAdmin = session.adminName === normalizedName;
     let isAdmin = false;
 
-    if (isReturningAdmin) {
-      isAdmin = true;
-      Object.values(session.users).forEach(user => {
-        user.isAdmin = false;
-      });
-    } else if (!currentAdminEntry) {
+    if (!currentAdminEntry) {
       if (!session.adminName) {
         isAdmin = true;
         session.adminName = normalizedName;
+      } else if (session.adminName === normalizedName) {
+        isAdmin = true;
       }
     }
 
     if (isAdmin) {
       session.adminName = normalizedName;
-    }
-
-    const existingUserId = Object.keys(session.users).find(id => {
-      const userName = session.users[id]?.name || '';
-      return userName.trim().toLowerCase() === normalizedName;
-    });
-
-    if (existingUserId) {
-      delete session.users[existingUserId];
     }
 
     session.users[socket.id] = { name: trimmedName, vote: null, isAdmin };
