@@ -189,16 +189,10 @@ document.getElementById('name').focus();
     let votesRevealed = false;
     let hoveredRemoveUser = null;
     window._notifiedOnce = false;
-    let pollTimeoutId = null;
+    window.fetchInterval = null;
     const ACTIVE_POLL_INTERVAL = 500;
     const REVEALED_POLL_INTERVAL = 3000;
-    const HIDDEN_POLL_INTERVAL = 12000;
-    let desiredPollInterval = null;
-    let basePollInterval = ACTIVE_POLL_INTERVAL;
-    let visibilityOverrideInterval = null;
-    let pollingEnabled = false;
-    let isFetchingState = false;
-    let lastFetchPromise = null;
+    let currentPollInterval = null;
 
     function toggleDarkMode() {
       document.documentElement.classList.toggle('dark');
