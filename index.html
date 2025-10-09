@@ -223,24 +223,82 @@ document.getElementById('name').focus();
   });
 }
 
-function startPolling(interval = ACTIVE_POLL_INTERVAL) {
-  if (window.fetchInterval) clearInterval(window.fetchInterval);
-  window.fetchInterval = setInterval(fetchSessionState, interval);
-  currentPollInterval = interval;
+function scheduleNextPoll() {
+  if (desiredPollInterval == null) return;
+
+  pollTimeoutId = setTimeout(async () => {
+    pollTimeoutId = null;
+
+    try {
+      await fetchSessionState();
+    } finally {
+      if (desiredPollInterval != null) {
+        scheduleNextPoll();
+      }
+    }
+  }, desiredPollInterval);
 }
-function stopPolling() {
-  if (window.fetchInterval) {
-    clearInterval(window.fetchInterval);
-    window.fetchInterval = null;
+
+function updatePollingSchedule() {
+  if (!pollingEnabled) {
+    desiredPollInterval = null;
+    if (pollTimeoutId) {
+      clearTimeout(pollTimeoutId);
+      pollTimeoutId = null;
+    }
+    return;
   }
-  currentPollInterval = null;
+
+  const nextInterval = visibilityOverrideInterval ?? basePollInterval;
+  if (desiredPollInterval === nextInterval) return;
+
+  desiredPollInterval = nextInterval;
+
+  if (pollTimeoutId) {
+    clearTimeout(pollTimeoutId);
+    pollTimeoutId = null;
+  }
+
+  if (desiredPollInterval != null) {
+    scheduleNextPoll();
+  }
+}
+
+function startPolling(interval = ACTIVE_POLL_INTERVAL) {
+  stopPolling();
+  pollingEnabled = true;
+  basePollInterval = interval;
+  updatePollingSchedule();
+}
+
+function stopPolling() {
+  pollingEnabled = false;
+  desiredPollInterval = null;
+  if (pollTimeoutId) {
+    clearTimeout(pollTimeoutId);
+    pollTimeoutId = null;
+  }
 }
 
 function ensurePollingInterval(interval) {
-  if (currentPollInterval !== interval) {
-    startPolling(interval);
+  if (basePollInterval !== interval) {
+    basePollInterval = interval;
+    updatePollingSchedule();
   }
 }
+
+document.addEventListener('visibilitychange', () => {
+  visibilityOverrideInterval = document.hidden ? HIDDEN_POLL_INTERVAL : null;
+  updatePollingSchedule();
+});
+
+window.addEventListener('beforeunload', stopPolling);
+window.addEventListener('pagehide', stopPolling);
+window.addEventListener('pageshow', () => {
+  if (!pollingEnabled && sessionId && userName) {
+    startPolling(votesRevealed ? REVEALED_POLL_INTERVAL : ACTIVE_POLL_INTERVAL);
+  }
+});
 
 
 
@@ -309,7 +367,7 @@ function renderCards() {
     method: 'POST',
     body: JSON.stringify({ sessionId, userName, vote: value }),
     headers: { 'Content-Type': 'application/json' }
-  }).then(fetchSessionState);
+  }).then(() => fetchSessionState());
 };
 
 
@@ -322,7 +380,15 @@ function renderCards() {
 
 
 function fetchSessionState() {
-  fetch(`/state?sessionId=${sessionId}`)
+  if (!sessionId) return Promise.resolve();
+
+  if (isFetchingState) {
+    return lastFetchPromise;
+  }
+
+  isFetchingState = true;
+
+  lastFetchPromise = fetch(`/state?sessionId=${sessionId}`)
     .then(res => {
       if (!res.ok) throw new Error('Failed to fetch session state.');
       return res.json();
@@ -332,7 +398,12 @@ function fetchSessionState() {
     })
     .catch(err => {
       console.error("Failed to fetch session state:", err);
+    })
+    .finally(() => {
+      isFetchingState = false;
     });
+
+  return lastFetchPromise;
 }
 
 
@@ -342,9 +413,7 @@ function revealVotes() {
     method: 'POST',
     body: JSON.stringify({ sessionId }),
     headers: { 'Content-Type': 'application/json' }
-  }).then(() => {
-    fetchSessionState(); // 👈 Refresh state immediately
-  });
+  }).then(() => fetchSessionState()); // 👈 Refresh state immediately
 }
 
 
