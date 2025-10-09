@@ -66,7 +66,7 @@ tailwind.config = {
 >
   Join Session
 </button>
-<button
+      <button
   id="createSessionBtn"
   type="button"
   class="w-full sm:w-1/2 bg-green-500 hover:bg-green-600 hover:shadow-md hover:brightness-110 text-white px-4 py-2 rounded transition-all duration-200"
@@ -75,6 +75,7 @@ tailwind.config = {
 </button>
       </div>
     </form>
+    <div id="errorMessage" class="hidden mt-2 text-sm text-red-600 bg-red-100 border border-red-300 rounded p-3 text-left"></div>
   </div>
 </div>
 
@@ -162,6 +163,22 @@ function toggleSound() {
 }
 
 
+    function showError(message) {
+  const banner = document.getElementById('errorMessage');
+  if (!banner) return;
+
+  banner.textContent = message;
+  banner.classList.remove('hidden');
+}
+
+function clearError() {
+  const banner = document.getElementById('errorMessage');
+  if (!banner) return;
+
+  banner.textContent = '';
+  banner.classList.add('hidden');
+}
+
     function createSession() {
   fetch('/create-session')
     .then(res => {
@@ -189,10 +206,16 @@ document.getElementById('name').focus();
     let votesRevealed = false;
     let hoveredRemoveUser = null;
     window._notifiedOnce = false;
-    window.fetchInterval = null;
+    let pollTimeoutId = null;
     const ACTIVE_POLL_INTERVAL = 500;
     const REVEALED_POLL_INTERVAL = 3000;
-    let currentPollInterval = null;
+    const HIDDEN_POLL_INTERVAL = 12000;
+    let desiredPollInterval = null;
+    let basePollInterval = ACTIVE_POLL_INTERVAL;
+    let visibilityOverrideInterval = null;
+    let pollingEnabled = false;
+    let isFetchingState = false;
+    let lastFetchPromise = null;
 
     function toggleDarkMode() {
       document.documentElement.classList.toggle('dark');
@@ -206,10 +229,18 @@ document.getElementById('name').focus();
 
   if (!sessionId || !userName) return alert('Enter session ID and name');
 
+  clearError();
+
   fetch('/join', {
     method: 'POST',
     body: JSON.stringify({ sessionId, userName }),
     headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Unable to reach the session service.');
+    }
+    return res.json();
   })
   .then(() => {
     document.getElementById('setup').classList.add('hidden');
@@ -220,6 +251,10 @@ document.getElementById('name').focus();
     renderCards();
     fetchSessionState(); // initial load
     startPolling();      // 👈 start the interval
+  })
+  .catch(err => {
+    console.error('Join session failed:', err);
+    showError('Unable to reach the session service. Please check the worker status and try again.');
   });
 }
 
