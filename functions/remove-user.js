@@ -25,7 +25,9 @@ export async function onRequestPost({ request, env }) {
 
     const requestingUser = session.users[requestedBy];
 
-    if (!requestingUser || !requestingUser.isAdmin) {
+    const canRemoveUsers = requestingUser?.isAdmin || session.allowSharedControls;
+
+    if (!canRemoveUsers) {
       return new Response(JSON.stringify({ error: 'Only an admin can remove users' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' }
