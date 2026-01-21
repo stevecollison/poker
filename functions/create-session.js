@@ -1,13 +1,16 @@
 import { saveSession } from './lib/session.js';
 import { nanoid } from 'nanoid';
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
   try {
     const sessionId = nanoid(8);
+    const url = new URL(request.url);
+    const allowSharedControls = url.searchParams.get('allowSharedControls') === 'true';
 
     const session = {
       users: {},
       revealed: false,
+      allowSharedControls,
     };
 
     await saveSession(env, sessionId, session);
