@@ -59,6 +59,12 @@ tailwind.config = {
       <label for="name" class="block text-sm text-gray-600 dark:text-gray-300 text-left">Your Name</label>
       <input id="name" placeholder="Your Name" class="w-full p-3 border rounded" autofocus autocomplete="off" />
 </div>
+      <div id="allowSharedControlsField" class="flex items-start gap-3 rounded border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 px-3 py-2 text-left">
+        <input id="allowSharedControls" type="checkbox" class="mt-1 h-4 w-4 accent-green-500" />
+        <label for="allowSharedControls" class="text-sm text-gray-600 dark:text-gray-300">
+          Allow invited users to reveal and clear votes
+        </label>
+      </div>
       <div class="flex flex-col sm:flex-row sm:gap-4 gap-2">
       <button
   type="submit"
@@ -129,18 +135,20 @@ tailwind.config = {
 
 
 
-  window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
   const urlParts = window.location.pathname.split('/');
   const maybeSessionId = urlParts[1];
   if (maybeSessionId && maybeSessionId.length >= 6) {
     sessionId = maybeSessionId; // ✅ Assign to global
     const sessionInput = document.getElementById('sessionId');
     const createBtn = document.getElementById('createSessionBtn');
+    const allowSharedControlsField = document.getElementById('allowSharedControlsField');
 
     sessionInput.value = sessionId;
     const sessionField = document.getElementById('sessionField');
 if (sessionField) sessionField.style.display = 'none';
     if (createBtn) createBtn.style.display = 'none';
+    if (allowSharedControlsField) allowSharedControlsField.style.display = 'none';
   }
 });
 
@@ -180,7 +188,9 @@ function clearError() {
 }
 
     function createSession() {
-  fetch('/create-session')
+  const allowSharedControls = document.getElementById('allowSharedControls')?.checked;
+  const query = allowSharedControls ? '?allowSharedControls=true' : '';
+  fetch(`/create-session${query}`)
     .then(res => {
       if (!res.ok) throw new Error('Failed to create session.');
       return res.json();
@@ -540,6 +550,7 @@ function renderSessionState(session) {
 
   const { users, revealed } = session; // 👈 use 'revealed' directly
   votesRevealed = revealed ?? false;
+  const allowSharedControls = session.allowSharedControls ?? false;
 
 // 🔊 Handle server-triggered sound
 if (
@@ -575,9 +586,13 @@ if (
 
 if (currentUser?.isAdmin) {
   isAdmin = true;
-  document.getElementById('adminControls').classList.remove('hidden');
 } else {
   isAdmin = false;
+}
+
+if (currentUser?.isAdmin || allowSharedControls) {
+  document.getElementById('adminControls').classList.remove('hidden');
+} else {
   document.getElementById('adminControls').classList.add('hidden');
 }
 

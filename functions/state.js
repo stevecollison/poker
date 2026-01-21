@@ -34,6 +34,7 @@ export async function onRequestGet({ request, env }) {
       JSON.stringify({
         users: session.users,
         revealed: session.revealed || false,
+        allowSharedControls: session.allowSharedControls || false,
         triggerSound: session.triggerSoundSent || null // return timestamp
       }),
       { headers: { 'Content-Type': 'application/json' } }
