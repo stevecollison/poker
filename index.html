@@ -65,6 +65,47 @@ tailwind.config = {
           Allow invited users to reveal and clear votes
         </label>
       </div>
+      <div id="cardSelectionField" class="space-y-2 rounded border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 px-3 py-2 text-left">
+        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">Cards to display</p>
+        <div class="grid grid-cols-3 gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="0" class="h-4 w-4 accent-blue-500" checked />
+            <span>0</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="1" class="h-4 w-4 accent-blue-500" checked />
+            <span>1</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="2" class="h-4 w-4 accent-blue-500" checked />
+            <span>2</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="3" class="h-4 w-4 accent-blue-500" checked />
+            <span>3</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="5" class="h-4 w-4 accent-blue-500" checked />
+            <span>5</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="8" class="h-4 w-4 accent-blue-500" checked />
+            <span>8</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="13" class="h-4 w-4 accent-blue-500" checked />
+            <span>13</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="?" class="h-4 w-4 accent-blue-500" checked />
+            <span>?</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="cardSelection" value="☕" class="h-4 w-4 accent-blue-500" checked />
+            <span>☕</span>
+          </label>
+        </div>
+      </div>
       <div class="flex flex-col sm:flex-row sm:gap-4 gap-2">
       <button
   type="submit"
@@ -143,12 +184,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const sessionInput = document.getElementById('sessionId');
     const createBtn = document.getElementById('createSessionBtn');
     const allowSharedControlsField = document.getElementById('allowSharedControlsField');
+    const cardSelectionField = document.getElementById('cardSelectionField');
 
     sessionInput.value = sessionId;
     const sessionField = document.getElementById('sessionField');
 if (sessionField) sessionField.style.display = 'none';
     if (createBtn) createBtn.style.display = 'none';
     if (allowSharedControlsField) allowSharedControlsField.style.display = 'none';
+    if (cardSelectionField) cardSelectionField.style.display = 'none';
   }
 });
 
@@ -187,9 +230,31 @@ function clearError() {
   banner.classList.add('hidden');
 }
 
+function getSelectedCardValues() {
+  const selections = Array.from(document.querySelectorAll('input[name="cardSelection"]:checked'))
+    .map(input => input.value)
+    .map(value => {
+      if (value === '?' || value === '☕') {
+        return value;
+      }
+      const numberValue = Number(value);
+      return Number.isNaN(numberValue) ? value : numberValue;
+    });
+  return selections;
+}
+
     function createSession() {
   const allowSharedControls = document.getElementById('allowSharedControls')?.checked;
-  const query = allowSharedControls ? '?allowSharedControls=true' : '';
+  const selectedCards = getSelectedCardValues();
+  const cardsToUse = selectedCards.length ? selectedCards : allCards.map(card => card.value);
+  const queryParams = new URLSearchParams();
+  if (allowSharedControls) {
+    queryParams.set('allowSharedControls', 'true');
+  }
+  if (cardsToUse.length) {
+    queryParams.set('cards', cardsToUse.join(','));
+  }
+  const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
   fetch(`/create-session${query}`)
     .then(res => {
       if (!res.ok) throw new Error('Failed to create session.');
@@ -211,7 +276,7 @@ document.getElementById('createSessionBtn')?.addEventListener('click', createSes
 document.getElementById('name').focus();
 
     
-    const cards = [
+    const allCards = [
       { label: 0, value: 0 },
       { label: 1, value: 1 },
       { label: 2, value: 2 },
@@ -222,6 +287,7 @@ document.getElementById('name').focus();
       { label: '?', value: '?' },
       { label: '☕', value: '☕' }
     ];
+    let activeCards = [...allCards];
     let isAdmin = false;
     let votesRevealed = false;
     let allowSharedControls = false;
@@ -367,10 +433,14 @@ function renderCards() {
   const existingCards = container.querySelectorAll('.card');
   const currentUser = sessionUsers?.[userName];
   // If count hasn't changed, just update highlights
-  if (existingCards.length === cards.length) {
+  const cardValuesMatch = Array.from(existingCards).every((card, index) => {
+    return card.dataset.value === String(activeCards[index]?.value);
+  });
+
+  if (existingCards.length === activeCards.length && cardValuesMatch) {
     
     existingCards.forEach((card, index) => {
-      const value = cards[index].value;
+      const value = activeCards[index].value;
       card.classList.remove(
         'bg-blue-300',
         'dark:bg-blue-700',
@@ -391,10 +461,11 @@ function renderCards() {
 
   // Otherwise, fully re-render
   container.innerHTML = '';
-  cards.forEach(cardConfig => {
+  activeCards.forEach(cardConfig => {
     const card = document.createElement('div');
     card.className = 'card w-20 h-28 flex items-center justify-center border border-gray-400 dark:border-gray-600 rounded shadow bg-white dark:bg-gray-800 text-xl font-bold cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-lg hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500';
     card.textContent = cardConfig.label;
+    card.dataset.value = String(cardConfig.value);
 
     const currentUser = sessionUsers?.[userName];
     if (currentUser && currentUser.vote === cardConfig.value) {
@@ -557,6 +628,11 @@ function renderSessionState(session) {
   }
 
   sessionUsers = session.users; // 👈 Add this
+
+  const availableCards = session.availableCards || allCards.map(card => card.value);
+  const availableCardSet = new Set(availableCards);
+  const nextActiveCards = allCards.filter(card => availableCardSet.has(card.value));
+  activeCards = nextActiveCards.length ? nextActiveCards : [...allCards];
   renderCards(); // 👈 rerenders the vote UI with updated state
 
   const { users, revealed } = session; // 👈 use 'revealed' directly

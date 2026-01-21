@@ -6,11 +6,31 @@ export async function onRequestGet({ request, env }) {
     const sessionId = nanoid(8);
     const url = new URL(request.url);
     const allowSharedControls = url.searchParams.get('allowSharedControls') === 'true';
+    const rawCards = url.searchParams.get('cards');
+    const allowedCardValues = new Set([0, 1, 2, 3, 5, 8, 13, '?', '☕']);
+
+    const parsedCards = rawCards
+      ? rawCards
+          .split(',')
+          .map(value => {
+            if (value === '?' || value === '☕') {
+              return value;
+            }
+            const numberValue = Number(value);
+            return Number.isNaN(numberValue) ? null : numberValue;
+          })
+          .filter(value => value !== null && allowedCardValues.has(value))
+      : [];
+
+    const availableCards = parsedCards.length
+      ? parsedCards
+      : [0, 1, 2, 3, 5, 8, 13, '?', '☕'];
 
     const session = {
       users: {},
       revealed: false,
       allowSharedControls,
+      availableCards,
     };
 
     await saveSession(env, sessionId, session);
