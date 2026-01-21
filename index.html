@@ -224,6 +224,7 @@ document.getElementById('name').focus();
     ];
     let isAdmin = false;
     let votesRevealed = false;
+    let allowSharedControls = false;
     let hoveredRemoveUser = null;
     window._notifiedOnce = false;
     let pollTimeoutId = null;
@@ -518,7 +519,7 @@ function calculateStats(votes) {
 
 
 function removeUser(targetName) {
-  if (!isAdmin) return;
+  if (!isAdmin && !allowSharedControls) return;
 
   const confirmRemoval = confirm(`Remove ${targetName} from the session?`);
   if (!confirmRemoval) return;
@@ -560,7 +561,7 @@ function renderSessionState(session) {
 
   const { users, revealed } = session; // 👈 use 'revealed' directly
   votesRevealed = revealed ?? false;
-  const allowSharedControls = session.allowSharedControls ?? false;
+  allowSharedControls = session.allowSharedControls ?? false;
 
 // 🔊 Handle server-triggered sound
 if (
@@ -657,7 +658,7 @@ sortedUsers.forEach(user => {
   nameCell.className = 'text-left pl-2 flex items-center justify-between gap-2';
   nameCell.textContent = displayName;
 
-  if (isAdmin && user.name !== userName) {
+  if ((isAdmin || allowSharedControls) && user.name !== userName) {
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.textContent = '✕';
