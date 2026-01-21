@@ -35,6 +35,7 @@ export async function onRequestGet({ request, env }) {
         users: session.users,
         revealed: session.revealed || false,
         allowSharedControls: session.allowSharedControls || false,
+        availableCards: session.availableCards || [0, 1, 2, 3, 5, 8, 13, '?', '☕'],
         triggerSound: session.triggerSoundSent || null // return timestamp
       }),
       { headers: { 'Content-Type': 'application/json' } }
