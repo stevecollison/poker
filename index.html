@@ -204,6 +204,7 @@ window.addEventListener('click', () => {
 
     let sessionId = '';
     let userName = '';
+    let userToken = null;
     let sessionUsers = {};
 
     let soundEnabled = false;
@@ -228,6 +229,19 @@ function clearError() {
 
   banner.textContent = '';
   banner.classList.add('hidden');
+}
+
+function getUserTokenStorageKey(sessionIdValue, userNameValue) {
+  return `poker:userToken:${sessionIdValue}:${userNameValue.toLowerCase()}`;
+}
+
+function getStoredUserToken(sessionIdValue, userNameValue) {
+  return localStorage.getItem(getUserTokenStorageKey(sessionIdValue, userNameValue));
+}
+
+function storeUserToken(sessionIdValue, userNameValue, token) {
+  if (!token) return;
+  localStorage.setItem(getUserTokenStorageKey(sessionIdValue, userNameValue), token);
 }
 
 function getSelectedCardValues() {
@@ -318,18 +332,23 @@ document.getElementById('name').focus();
 
   clearError();
 
+  const storedUserToken = getStoredUserToken(sessionId, userName);
+
   fetch('/join', {
     method: 'POST',
-    body: JSON.stringify({ sessionId, userName }),
+    body: JSON.stringify({ sessionId, userName, userToken: storedUserToken }),
     headers: { 'Content-Type': 'application/json' }
   })
-  .then(res => {
+  .then(async res => {
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error('Unable to reach the session service.');
+      throw new Error(body.error || 'Unable to join session.');
     }
-    return res.json();
+    return body;
   })
-  .then(() => {
+  .then(body => {
+    userToken = body.userToken || storedUserToken;
+    storeUserToken(sessionId, userName, userToken);
     document.getElementById('setup').classList.add('hidden');
     document.getElementById('game').classList.remove('hidden');
     document.getElementById('usernameDisplay').textContent = userName;
@@ -341,7 +360,7 @@ document.getElementById('name').focus();
   })
   .catch(err => {
     console.error('Join session failed:', err);
-    showError('Unable to reach the session service. Please check the worker status and try again.');
+    showError(err.message || 'Unable to reach the session service. Please check the worker status and try again.');
   });
 }
 
@@ -492,7 +511,7 @@ function renderCards() {
 
   fetch('/vote', {
     method: 'POST',
-    body: JSON.stringify({ sessionId, userName, vote: cardConfig.value }),
+    body: JSON.stringify({ sessionId, userName, userToken, vote: cardConfig.value }),
     headers: { 'Content-Type': 'application/json' }
   }).then(() => fetchSessionState());
 };
