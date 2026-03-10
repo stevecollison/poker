@@ -2,7 +2,7 @@ import { getSession, saveSession } from './lib/session.js';
 
 export async function onRequestPost({ request, env }) {
   try {
-    const { sessionId, userName, vote } = await request.json();
+    const { sessionId, userName, userToken, vote } = await request.json();
 
     if (!sessionId || !userName) {
       return new Response(JSON.stringify({ error: 'Missing sessionId or userName' }), {
@@ -19,10 +19,13 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    if (!session.users[userName]) {
-      session.users[userName] = { name: userName };
-    }
 
+    if (!session.users[userName] || !session.userTokens || !session.userTokens[userName] || session.userTokens[userName] !== userToken) {
+      return new Response(JSON.stringify({ error: 'Unauthorized vote update' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     session.users[userName].vote = vote;
 
     await saveSession(env, sessionId, session);

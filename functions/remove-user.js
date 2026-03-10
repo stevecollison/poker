@@ -45,6 +45,10 @@ export async function onRequestPost({ request, env }) {
 
     delete session.users[targetUser];
 
+    if (session.userTokens) {
+      delete session.userTokens[targetUser];
+    }
+
     if (removedWasAdmin) {
       const remainingUsers = Object.values(session.users);
       if (remainingUsers.length > 0) {
